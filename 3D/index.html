@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>3D球</title>
+	<style>
+		*{
+			margin:0px;
+			padding:0px;
+		}
+		div{
+			width:500px;
+			height:auto;
+			margin:0 auto;
+		}
+		button{
+			width:100px;
+			height:35px;
+			display: block;
+			margin:0 auto;
+		}
+		.sprite {
+		    width:245px;
+		  height:400px;
+		  display:block;    
+		  background:transparent url(http://www.w3cplus.com/sites/default/files/blogs/2015/1506/walker.png) 0 0 no-repeat;  
+		 margin:3em auto;
+		  animation: walker 1s steps(5) infinite;
+		}
+
+
+		@keyframes walker {
+		  from {background-position:0 0;}
+		  to {background-position:0 -4000px;}
+		}
+	</style>
+	<script src="jquery-1.11.1.min.js" type="text/javascript" ></script>
+	<script>
+		$(function(){
+			$(document).on('click','button',function(){
+
+			})
+		})
+	</script>
+</head>
+<body>
+	<button>翻转</button>
+	<div class="sprite"></div> 
+</body>
+</html>

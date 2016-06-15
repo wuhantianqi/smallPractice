@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<script src="/jquery-1.11.1.min.js" type="text/javascript"></script>
+	<script type="text/javascript">
+		function truncateString(str,num,tr){
+			var len=str.split('').length;
+			var newstr=str.slice(0,num);
+			var newnum=len-num;
+			var newtr='';
+			if(num >=len){
+				return str;
+			}
+			if(newnum==1){
+				newstr+=tr;
+			}else{
+				for(var i=1;i<newnum;i++){
+					newtr+=tr;
+				}
+				newstr+=newtr;
+			}
+			return newstr;
+		}
+		alert(truncateString('如需转载，烦请注明出处',5,'&'));
+		// function palindrome(str) {
+		//     // var re = /[\W_]/g; // 或者 var re = /[^A-Za-z0-9]/g;
+
+		//     // var lowRegStr = str.toLowerCase().replace(re,'');
+		//     // alert(lowRegStr);
+		//     // var reverseStr = lowRegStr.split('').reverse().join('');
+		//     // console.log(reverseStr);
+		//     // return reverseStr === lowRegStr;
+
+		//     var re =/[\W]/g;
+		//     var lowRegStr=str.toLowerCase().replace(re,'');
+		//     if(lowRegStr.length===0){
+		//     	return true;
+		//     }
+		//     if(lowRegStr[0] !==lowRegStr[lowRegStr.length-1]){
+		//     	return false;
+		//     }else{
+		//     	return palindrome(lowRegStr.slice(1,lowRegStr.length-1));
+		//     }
+		// }
+		// alert(palindrome('abcdcba'));
+		// var arr = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+		// function chunk(arr, size) {  
+		//   var iter = Math.floor(arr.length / size);
+		//   var newArr = [];
+		//   var len = arr.length;
+		//   for (var i = 0; i < iter; i++) {
+		//     var tempArr = [];
+		//     for (var x = 0; x < size; x++) {
+		//       tempArr.push(arr[x]);
+		//     }
+		//     alert(tempArr);
+		//     arr.splice(0, size);
+		//     newArr.push(tempArr);
+		//   }
+		//   if (arr.length > 0) {
+		//     newArr.push(arr);
+		//   }
+		//   return newArr;
+		// }
+		// console.log(chunk(arr,2))
+		// function factorial(num){
+		// 	for(var i=(num-1);i>=1;i--){
+		// 		num*=i;
+		// 	}
+		// 	return num;
+		// }
+		// alert(factorial(4))
+		// function factorial(num){
+		// 	var result=num;
+		// 	while(num>1){
+		// 		num--;
+		// 		result*=num;
+		// 	}
+		// 	return result;
+		// }
+		// alert(factorial(4))
+		// function factorial(n){
+		// 	if(n!=1){
+		// 		return n*factorial(n-1);
+		// 	}
+		// 	return n;
+		// }
+		// alert(factorial(4));    4 3 2 1  
+		// factorial(n)=n*factorial(n-1);
+		// var arr = [1,2,3,4,5,6,7,8,9];
+		// function slasher(arr,howMany){
+		// 	if(howMany ==0){
+		// 		return arr;
+		// 	}
+		// 	if(howMany >= arr.length){
+		// 		arr=arr.splice(howMany,arr);
+		// 	}
+		// 	var end=arr.length-howMany;
+		// 	arr=arr.splice(howMany,end);
+		// 	return arr;
+		// }
+		// alert(slasher(arr,5));
+	</script>
+</head>
+<body>
+	
+</body>
+</html>

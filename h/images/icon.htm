@@ -1,0 +1,2562 @@
+<!DOCTYPE html>
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<!-- InstanceBeginEditable name="doctitle" -->
+		<title>恒信汽车客服管理中心</title>
+		<!-- InstanceEndEditable -->
+		<!-- InstanceBeginEditable name="style" -->
+		<link href="icon_files/calls.css" rel="stylesheet" type="text/css">
+		<link href="icon_files/bootstrap.css" rel="stylesheet">
+		<link href="icon_files/font-awesome.css" rel="stylesheet">
+		<link href="icon_files/alert.css" rel="stylesheet">
+		<script src="icon_files/autoscroll.js"></script>
+    <script src="icon_files/html5shiv.js"></script>
+    <script src="icon_files/respond.js"></script>
+
+    <script type="text/javascript">
+        var e=("abbr,article,aside,audio,canvas,datalist,details,"+
+        "figure,footer,header,hgroup,mark,menu,meter,nav,output,"+
+        "progress,section,time,video").split(',');
+        for(var i=0;i<e .length;i++){
+            document.createElement(e[i]);
+        }
+    </script>
+   
+		<script src="icon_files/jquery-1.js"></script>
+		<script src="icon_files/bootstrap.js"></script>
+		
+		<script>
+		
+		$(function(){
+			var winH = $(window).height();
+			var topH = $('header').height()+38;
+			var footerH = $('footer').height();
+			var userH = $('.toolbar').height();
+			var conH = winH-topH-footerH-userH;
+			//alert(conH);
+			$('#sidebar').css('height',conH);
+			$('#iframepage').css('height',conH);
+			
+			var winW = $(window).width();
+			var menuW = $('.col-lg-10').width();//alert(menuW);
+			if(menuW<1626){$('.col-lg-10').css({'float':'right'});}
+			else if(menuW > 1626){$('.col-lg-10').css('float','left');}
+			})
+			function iFrameHeight(bodyHeight) {
+				var ifm = $("#iframepage");
+				var leftHeight = $(".main-left-col").height();
+				if (bodyHeight < leftHeight) {
+					bodyHeight = leftHeight;
+				}
+				var bodyHeight = bodyHeight + "px!important";
+				if (ifm != null) {
+					//ifm.css("cssText", "height:" + bodyHeight);
+				}
+				var winH = $(window).height();
+				var topH = $('header').height()+38;
+				var footerH = $('footer').height();
+				var userH = $('.toolbar').height();
+				var conH = winH-topH-footerH-userH;
+				$('#sidebar').css('height',conH);
+				$('#iframepage').css('height',conH);
+			}
+		</script>
+		<!-- InstanceEndEditable -->
+		<!-- InstanceBeginEditable name="head" -->
+		<!-- InstanceEndEditable -->
+	</head>
+
+	<body>
+		<!--header-->
+		<style type="text/css">
+    #TextAreaSystemInfo
+    {
+        height: 217px;
+    }
+    .STYLEMODEL
+    {
+        font-family: "新宋体";
+        font-size: 12px;
+    }
+</style>
+<script src="icon_files/jquery.js"></script>
+<script language="javascript" type="text/javascript">
+
+window.onload = btnLogin_Click;
+var m_iClientState = 0;
+
+function btnLogin_Click()
+{
+    var ret;
+	var muser = '';
+    var mpass = '';
+    /*
+    var muser = '';
+    var mpass = '';
+    */
+    var mserver = "";
+    var mserveroption= "";
+
+    $('div.operation-buttons input').prop('disabled',true);
+    $('div.operation-buttons input').removeClass('yingda_d');
+    $('div.operation-buttons input').addClass('yingda_d');
+
+    if (muser == "" || mpass == "")
+    {
+        alert("您未绑定讯鸟帐号，不能使用呼叫功能!");
+        return;
+    }
+
+    ret = InfobirdCCClient.Initialize(1, "123");  <!--登录启通宝账号-->
+    if (ret){
+        InfobirdCCClient.ActionLogon2("", muser, mpass, "0", "0");
+        TextAreaSystemInfo.innerHTML = "正在登录......" + "<br />";
+    }else{
+    	alert( "初始化失败" );
+        TextAreaSystemInfo.innerHTML = "初始化失败" + "<br />";
+    }
+}
+
+//结束话前处理
+function stoppress(){
+    //alert('10秒后了');
+    InfobirdCCClient.ActionUnProcess();
+}
+//话前处理触发定时函数
+function Unpress(){
+    var ii = setTimeout(stoppress,180000);
+}
+
+<!--登陆成功后获取当前坐席工号和用户名-->
+function getAgentInfo(){
+
+    var AgentAccount = InfobirdCCClient.GetAgentAccount();
+    var AgentID = InfobirdCCClient.GetAgentExtNum();
+    alert(AgentAccount);
+    alert(AgentID);
+}
+
+function writeLog(cont){
+    //alert(cont);
+    $.ajax({
+     url:"/Index/writeLog",
+     type:"POST",
+     data:'conlog='+cont,
+     dataType:"text",
+     success:function(data){
+         var ni = data;
+     }
+     })
+}
+
+function btnDial_Call(){
+	$('#outDial').modal({ keyboard: true });
+}
+
+<!--回访-->
+function return_Call(mphonenumber){
+    if (m_iClientState == 0){
+        return;
+    }
+    if(mphonenumber != ''){
+        InfobirdCCClient.ActionOutDial(mphonenumber);
+	var _expires=new Date();
+	_expires.setTime(+_expires+10*60*1000);
+	$.cookie('hPhone',callReplace(mphonenumber),{expires:_expires});
+	$.cookie('sPhone',mphonenumber,{expires:_expires});
+	$('#custom_phone').text($.cookie('hPhone'));
+        var cont = '外呼了'+mphonenumber;
+        $('#outDial').modal('hide');
+    }else{
+        alert('请输入电话！或坐席工号');
+    }
+}
+
+<!-- 外呼 -->
+function btnDial_Click()
+{
+    if (m_iClientState == 0){
+        return;
+    }
+    var mphonenumber;
+    mphonenumber = $("#txtTarget").val();
+    //mphonenumber = '013659853541';
+    //alert(mphonenumber.length);
+    if(mphonenumber != ''){
+        InfobirdCCClient.ActionOutDial(mphonenumber);
+	var _expires=new Date();
+	_expires.setTime(+_expires+10*60*1000);
+	$.cookie('hPhone',callReplace(mphonenumber),{expires:_expires});
+	$.cookie('sPhone',mphonenumber,{expires:_expires});
+	$('#custom_phone').text($.cookie('hPhone'));
+	$("iframe").attr("src", '/callin/callout');
+       // $("#offhook-begin").attr('value', $.now());
+        var cont = '外呼了'+mphonenumber;
+        $('#outDial').modal('hide');
+    }else{
+        alert('请输入电话！或坐席工号');
+        //$("#btnDial").attr('class','call_button shoudonghuchu_d');
+    }
+}
+
+<!--呼叫-->
+function outDial_Click(id){
+    //alert(id);
+    var toid = '#'+id;
+    var mphonenumber = $(toid).val();
+    if(id == 'store-mobile'){
+        mphonenumber = $("input[name='shop_sele']:checked").attr('sel-shop-mobile');
+        if(!mphonenumber){
+            mphonenumber = $(toid).val();
+        }
+        $('#txtTarget').val(mphonenumber);
+    }
+    if(id == 'engine-phone'){
+        mphonenumber = $("#engine-mobile").val();
+        //alert(mphonenumber);
+        $('#txtTarget').val(mphonenumber);
+    }
+    //alert(mphonenumber);
+    if(mphonenumber.length==11 && mphonenumber.substr(0,1)!='0' && !mphonenumber.indexOf('@')){
+        mphonenumber = '0'+mphonenumber;
+    }
+    if(mphonenumber.indexOf('-')>0){
+        mphonenumber = mphonenumber.replace('-','');
+    }
+
+
+    if (m_iClientState == 0){
+        return;
+    }
+    if(mphonenumber != ''){
+        InfobirdCCClient.ActionOutDial(mphonenumber);
+        $("#offhook-begin").attr('value', $.now());
+        var cont = '呼叫了'+mphonenumber;
+        writeLog(cont);
+    }else{
+        alert('请输入电话！或坐席工号');
+        $("#btnDial").attr('class','call_button shoudonghuchu');
+    }
+}
+
+<!--回拨-->
+function callBack(){
+    var mphonenumber = $('#husun_phone_num').attr('real_call');
+    if(mphonenumber.length==11 && mphonenumber.substr(0,1)!='0'){
+        mphonenumber = '0'+mphonenumber;
+    }
+    if (m_iClientState == 0){
+        return;
+    }
+    if(mphonenumber != ''){
+        InfobirdCCClient.ActionOutDial(mphonenumber);
+        $("#btnDial").attr('class','call_button shoudonghuchu_d');
+        $("#offhook-begin").attr('value', $.now());
+        var cont = '回拨了'+mphonenumber;
+        writeLog(cont);
+    }else{
+        alert('请输入电话!');
+        $("#btnDial").attr('class','call_button shoudonghuchu');
+    }
+}
+
+<!--处理弹屏-->
+function callBack_Click(id,invokeid){
+    //alert(id);
+    if(id != ''){
+        $('#husundanju_edit').modal();
+        var calls = callReplace(id);
+        get_user_husun_info(id,invokeid);
+        $('#tan-invokeid').attr('tan-invokeid',invokeid);
+        $('#husun_phone_num').val(calls);
+        $('#husun_phone_num').attr('real_call',id);
+        $(".modal-dialog").css({"width":"700px","margin":"auto"});
+        $(".modal").css({"width":"700px","margin":"10px auto","overflow":"visible"});
+
+    }
+}
+
+<!-- 退出 -->
+function btnExit_Click()
+{
+    InfobirdCCClient.Exit();
+    TextAreaSystemInfo.innerHTML += "未登录" + "<br />";
+    //$("#btnLogonAgain").removeAttr('disabled');
+}
+
+//格式化时间
+function dateFormat(calltime){
+    calltime = Math.floor(calltime/1000);
+    if(calltime>=60 && calltime<3600){
+        var i = Math.floor(calltime/60);
+        var s = calltime - i*60;
+        calltime_format = i+'分'+s+'秒';
+    }else if(calltime>=3600){
+        var h = Math.floor(calltime/3600);
+        var ys = calltime - h*3600;
+        if(ys>=60){
+            var i = Math.floor(calltime/60);
+            var s = ys - i*60;
+        }else{
+            var i = 0;
+            var s = ys;
+        }
+        calltime_format = h+'小时'+i+'分'+s+'秒';
+    }else{
+        calltime_format = calltime+'秒';
+    }
+
+    return calltime_format;
+}
+<!-- 摘机 -->
+function btnOffHook_Click()
+{
+    if (m_iClientState == 0){
+        return;
+    }
+	
+    $("#btnOffHookOnModal").hide();
+    
+    if ($("#btnOffHook").val() != "摘机"){
+        InfobirdCCClient.ActionOnHook();
+        $("#btnDial").attr('class','call_button shoudonghuchu');
+        var calltime = $.now()-parseInt($("#offhook-begin").attr('value'));
+        var mattime = dateFormat(calltime);
+        calltime = '本次通话时长：' + mattime;
+        $('#call-time').html(calltime);
+
+    }else{
+        $("#btnDial").attr('class','call_button shoudonghuchu_d');
+        InfobirdCCClient.ActionOffHook();
+        $("#offhook-begin").attr('value', $.now());
+    }
+}
+
+<!-- 小休 -->
+function btnPark_Click()
+{
+    if (m_iClientState == 0)
+        return;
+    if ($("#btnPark").val() != "小休"){
+        InfobirdCCClient.ActionUnPark();
+        var cont = '从小休进入工作状态';
+        $("#btnPark").attr('class','call_button xiuxi_d');
+    }else{
+        InfobirdCCClient.ActionPark();
+        var cont = '进入小休状态';
+        $("#btnPark").attr('class','call_button xiuxi_d');
+    }
+    writeLog(cont);
+}
+
+<!-- 示忙 -->
+function btnProcess_Click()
+{
+    //alert('enen');
+    if (m_iClientState == 0)
+        return;
+    if ($("#btnProcess").val() != "示忙"){
+        InfobirdCCClient.ActionUnProcess();
+        var cont = '从示忙状态进入工作状态';
+        $("#btnPark").attr('class','call_button xiuxi');
+    }else{
+        InfobirdCCClient.ActionProcess();
+        var cont = '从工作状态进入示忙状态';
+        $("#btnPark").attr('class','call_button xiuxi_d');
+    }
+    writeLog(cont);
+}
+
+<!-- 保持 -->
+function btnHold_Click()
+{
+    if (m_iClientState == 0)
+        return;
+
+    if ($("#btnHold").val() != "保持"){
+        InfobirdCCClient.ActionUnHold();
+        var cont = '从保持状态进入取消保持状态';
+    }else{
+        InfobirdCCClient.ActionHold();
+        var cont = '从通话状态进入保持状态';
+    }
+    writeLog(cont);
+}
+
+<!-- 转移 -->
+function btnTransfer_Click()
+{
+    if (m_iClientState == 0){
+        return;
+    }
+    InfobirdCCClient.ActionTransfer();
+    var cont = '使用了通话转移';
+    writeLog(cont);
+}
+
+<!-- 静音 -->
+function btnMute_Click()
+{
+    if (m_iClientState == 0)
+        return;
+
+    if(m_iClientState==4 || m_iClientState==12)
+    {
+        if($("#btnMute").val()!="静音")
+        {
+            InfobirdCCClient.ActionSetMuteMode(false);
+            $("#btnMute").val("静音");
+            var cont = '使用了静音';
+        }else{
+            InfobirdCCClient.ActionSetMuteMode(true);
+            $("#btnMute").val("取消静音");
+            var cont = '取消了静音';
+        }
+        writeLog(cont);
+    }
+}
+
+<!-- 监听 -->
+function btnMonit_Click()
+{
+    if (m_iClientState == 0){
+        return;
+    }
+
+    if(InfobirdCCClient.GetIsMonit())
+    {
+        InfobirdCCClient.ActionStopMonit();
+        $("#btnMonit").val("取消监听");
+        $("#btnMonit").attr('class','call_button jianting_d');
+        var cont = '取消了监听状态';
+    }else{
+        InfobirdCCClient.ActionMonit();
+        $("#btnMonit").val("监听");
+        $("#btnMonit").attr('class','call_button jianting_d');
+        var cont = '进入了监听状态';
+    }
+    writeLog(cont);
+}
+
+<!-- 转IVR -->
+function btnTransferToIVR_Click()
+{
+    if (m_iClientState == 0)
+        return;
+
+    InfobirdCCClient.ActionTransferToIVR("", false, "", "", 0);
+}
+
+<!-- 二次验证 -->
+function btnTwiceCheck_Click()
+{
+    if (m_iClientState == 0)
+        return;
+
+    InfobirdCCClient.ActionTransferToIVR("", false, "", "", 1);
+}
+
+<!-- 设置 -->
+function btnSettings_Click()
+{
+    InfobirdCCClient.ActionSettings();
+    $("#btnSettings").attr('class','call_button peizhi_d');
+}
+
+<!-- 登出 -->
+function btnLogout_Click()
+{
+    if (m_iClientState == 0){
+        return;
+    }
+    InfobirdCCClient.ActionLogout();
+    writeLog('登出');
+}
+
+<!-- 登出后重登 -->
+function btnLogonAgain_Click()
+{
+    InfobirdCCClient.ActionLogonAgain();
+    writeLog('重登');
+}
+
+<!--保持下获得空闲坐席-->
+function btnGethelp_Click()
+{
+    InfobirdCCClient.ActionGetFullFreeAgentInfo();
+    $("#btnGethelp").attr('class','call_button neibuqiuzhu_d');
+}
+function btnConference_Click()
+{
+    if (m_iClientState == 0)
+        return;
+    if ($("#btnConference").val() != "三方通话")
+        InfobirdCCClient.ActionEndConference();
+    else
+        InfobirdCCClient.ActionStartConference();
+}
+
+//手机号码中间4位替换**
+function callReplace(caller){
+    if(caller.length>11 && caller.substr(0,1)=='0'){
+        caller = caller.substr(1,caller.length-1);
+    }
+    var cutstr = caller.substr(3,4);
+        //cutstr = '/'+cutstr+'/';
+    //alert(cutstr);
+    var caller = caller.replace(cutstr,'****');
+    return caller;
+}
+</script>
+
+<!-- 座席状态改变事件 -->
+<script type="text/javascript" language="javascript" for="InfobirdCCClient" event="OnClientStateChange(parm)">
+
+$("#btnPark").val("小休");
+$("#btnHold").val("保持");
+$("#btnProcess").val("示忙");
+$("#btnOffHook").val("摘机");
+$("#btnSettings").removeAttr("disabled");
+$("#btnMute").attr("disabled","false");
+$("#btnMute").attr("class","call_button jingyin_d");
+//$("#btnLogin").attr("disabled","false");
+$("#btnLogout").attr("disabled","false");
+$("#btnLogonAgain").attr("disabled","false");
+$("#btnExit").attr("disabled","false");
+$("#btnConference").val("三方通话");
+$("#btnConference").attr("disabled","false");
+$("#btnTransferToIVR").attr("disabled","false");
+$("#btnTwiceCheck").attr("disabled","false");
+
+var agent_ext_num = InfobirdCCClient.GetAgentExtNum();
+if(agent_ext_num == null || agent_ext_num == ''){
+	agent_account = InfobirdCCClient.GetAgentAccount();
+	agent_ext_num = agent_account.substring(0,agent_account.indexOf("@"));
+}
+
+$('p.customer-service-info a span').html(agent_ext_num);
+m_iClientState = parm;
+switch (parseInt(parm))
+{
+    case 0:<!--未登录-->
+    {
+        $("#job-status").html("未登录");
+        TextAreaSystemInfo.innerHTML += "未登录" + "<br />";
+        $("#btnTransfer").attr("disabled","false");
+        $("#btnTransfer").attr('class','call_button tonghuazhuanyi_d');
+        $("#btnProcess").attr("disabled","false");
+        $("#btnProcess").attr("class","call_button shimang_d");
+        $("#btnPark").attr("disabled","false");
+        $("#btnDial").attr("disabled","false");
+        $("#btnOffHook").attr("disabled","false");
+        $("#btnOffHook").attr('class','call_button yingda_d');
+        $("#btnHold").attr("disabled","false");
+        $("#btnHold").attr("class","call_button baochitonghua_d");
+        $("#btnSettings").attr("disabled","false");
+        $("#btnTwiceCheck").attr("disabled","false");
+        $("#btnTransferToIVR").attr("disabled","false");
+        $("#btnMute").attr("disabled","false");
+        $("#btnMute").attr("class","call_button jingyin_d");
+        $("#btnLogin").removeAttr("disabled");;
+        $("#btnLogout").attr("disabled","false");
+        $("#btnLogonAgain").attr("disabled","false");
+        $("#btnLogonAgain").removeAttr('disabled');
+        $("#btnExit").attr("disabled","false");
+        $("#btnConference").attr("disabled","false");
+    }
+        break;
+    case 1:<!--等待-->
+    {
+        //alert('nihao');
+        $("#job-status").html("等待");
+        TextAreaSystemInfo.innerHTML += "等待" + "<br />";
+        $("#btnTransfer").attr("disabled","false");
+        $("#btnTransfer").attr("class","call_button tonghuazhuanyi_d");
+        $("#btnProcess").removeAttr("disabled");
+        $("#btnProcess").attr("class","call_button shimang");
+        $("#btnPark").removeAttr("disabled");
+        $("#btnPark,#btnSettings").removeClass("yingda_d");
+        $("#btnPark").attr("class","call_button xiuxi");
+        $("#btnDial").removeAttr("disabled");
+        $("#btnDial").attr("class","call_button shoudonghuchu");
+        $("#btnOffHook").attr("disabled","false");
+        $("#btnOffHook").attr('class','call_button yingda_d');
+        $("#btnHold").attr("disabled","false");
+        $("#btnHold").attr("class","call_button baochitonghua_d");
+        $("#btnMute").attr("disabled","false");
+        $("#btnMute").attr("class","call_button jingyin_d");
+        $("#btnGethelp").removeAttr("disabled");
+        $("#btnGethelp").attr("class","call_button neibuqiuzhu");
+        $("#btnLogin").attr("disabled","false");
+        $("#btnLogout").removeAttr("disabled");
+        $("#btnLogonAgain").attr("disabled","false");
+        $("#btnExit").removeAttr("disabled");
+    }
+	    break;
+    case 2:<!--震铃-->
+    {
+        $("#job-status").html("震铃");
+        TextAreaSystemInfo.innerHTML += "震铃" + "<br />";
+        $("#btnTransfer").attr("disabled","false");
+        $("#btnTransfer").attr('class','call_button tonghuazhuanyi_d');
+        $("#btnProcess").attr("disabled","false");
+        $("#btnProcess").attr("class","call_button shimang_d");
+        $("#btnPark").addClass("yingda_d");
+        $("#btnPark").attr("disabled","false");
+        $("#btnMonit").attr("disabled","true");
+        $("#btnMonit").attr("class","call_button jianting yingda_d");
+        $("#btnPark").attr("disabled","false");
+        $("#btnDial").addClass("yingda_d");
+        $("#btnDial").attr("disabled","false");
+        $("#btnOffHook").removeAttr("disabled");
+        $("#btnOffHook").attr("class","call_button yingda");
+        $("#btnHold").attr("disabled","false");
+        $("#btnHold").attr("class","call_button baochitonghua_d");
+        //$("#btnLogin").attr("disabled","false");
+        $("#btnLogout").removeAttr("disabled");
+        $("#btnLogonAgain").attr("disabled","false");
+        $("#btnExit").removeAttr("disabled");
+    }
+        break;
+    case 3:<!--小休-->
+    {
+    	
+        $("#job-status").html("小休");
+        TextAreaSystemInfo.innerHTML += "小休" + "<br />";
+        $("#btnTransfer").attr("disabled","false");
+        $("#btnTransfer").attr("class","call_button tonghuazhuanyi_d");
+        $("#btnProcess").attr("disabled","false");
+        $("#btnProcess").attr('class','call_button shimang_d');
+        $("#btnPark").val("工作").attr("class","call_button xiuxi");
+        $("#btnPark").removeAttr("disabled");
+        $("#btnDial").addClass('yingda_d');
+//        $("#btnGethelp").addClass('yingda_d');
+        $("#btnOffHook").attr("disabled","false");
+        $("#btnOffHook").attr('class','call_button yingda_d');
+        $("#btnHold").attr("disabled","false");
+        $("#btnHold").attr("class","call_button baochitonghua_d");
+        ///$("#btnLogin").attr("disabled","false");
+        $("#btnDial").addClass("yingda_d").attr("disabled","false");
+        $("#btnLogout").removeAttr("disabled");
+        $("#btnLogonAgain").attr("disabled","false");
+        $("#btnExit").removeAttr("disabled");
+    }
+        break;
+    case 4:<!--通话-->
+    {
+        $("#job-status").html("通话");
+        TextAreaSystemInfo.innerHTML += "通话" + "<br />";
+        $("#btnTransfer").attr("disabled","false");
+        $("#btnTransfer").attr("class","call_button tonghuazhuanyi_d");
+        $("#btnProcess").attr("disabled","false");
+        $("#btnProcess").attr("class","call_button shimang_d");
+        $("#btnPark").attr("disabled","false");
+        $("#btnDial").attr("disabled","false");
+        $("#btnOffHook").val("挂机");
+        $("#btnOffHook").removeAttr("disabled");
+        $("#btnOffHook").attr("class","call_button yingda");
+        $("#btnHold").removeAttr("disabled");
+        $("#btnHold").attr("class","call_button baochitonghua");
+        $("#btnMute").removeAttr("disabled");
+        $("#btnMute").attr("class","call_button jingyin");
+        // $("#btnLogin").attr("disabled","false");
+        $("#btnLogout").removeAttr("disabled");
+        $("#btnLogonAgain").attr("disabled","false");
+        $("#btnExit").removeAttr("disabled");
+        <!--GetIVRReturn的返回值： 1 为 呼入满意度调查功能；2 为 呼入满意度调查功能 + 座席转IVR并转回功能；  3 为 呼出满意度调查功能； 4 为 呼入和呼出满意度调查功能； 5 为 座席转IVR并转回功能； 6 为 呼出满意度调查功能 + 座席转IVR并转回功能； 7 为 呼入和呼出满意度调查功能 + 座席转IVR并转回功能；-->
+        if (InfobirdCCClient.GetIVRReturn() == 7)
+            $("#btnTransferToIVR").removeAttr("disabled");
+        if (InfobirdCCClient.GetIVRReturn() == 7)
+            $("#btnTwiceCheck").removeAttr("disabled");
+    }
+        break;
+    case 5:<!--被动席间通话-->
+    {
+        $("#job-status").html("被动席间通话");
+        TextAreaSystemInfo.innerHTML += "被动席间通话" + "<br />";
+        $("#btnTransfer").attr("disabled","false");
+        $("#btnTransfer").attr("class","call_button tonghuazhuanyi_d");
+        $("#btnProcess").attr("disabled","false");
+        $("#btnProcess").attr("class","call_button shimang_d");
+        $("#btnPark").attr("disabled","false");
+        $("#btnDial").attr("disabled","false");
+        $("#btnOffHook").val("挂机");
+        $("#btnOffHook").removeAttr("disabled");
+        $("#btnOffHook").attr("class","call_button yingda");
+        $("#btnHold").attr("disabled","false");
+        $("#btnHold").attr("class","call_button baochitonghua_d");
+        //$("#btnLogin").attr("disabled","false");
+        $("#btnLogout").removeAttr("disabled");
+        $("#btnLogonAgain").attr("disabled","false");
+        $("#btnExit").removeAttr("disabled");
+    }
+        break;
+    case 6:<!--话前处理-->
+    {
+        Unpress();
+        $("#job-status").html("示忙");
+        TextAreaSystemInfo.innerHTML += "示忙" + "<br />";
+        $("#btnTransfer").attr("disabled","false");
+        $("#btnTransfer").attr("class","call_button tonghuazhuanyi_d");
+        $("#btnProcess").val("完成");
+        $("#btnProcess").removeAttr("disabled");
+        $("#btnProcess").attr("class","call_button shimang");
+        $("#btnPark").attr("disabled","false");
+        $("#btnPark").attr("class","call_button xiuxi_d");
+        $("#btnDial").removeAttr("disabled");
+        $("#btnOffHook").attr("disabled","false");
+        $("#btnOffHook").attr("class","call_button yingda_d");
+        $("#btnHold").attr("disabled","false");
+        $("#btnHold").attr("class","call_button baochitonghua_d");
+        //$("#btnLogin").attr("disabled","false");
+        $("#btnLogout").removeAttr("disabled");
+        $("#btnLogonAgain").attr("disabled","false");
+        $("#btnExit").removeAttr("disabled");
+    }
+        break;
+    case 7:<!--话后处理-->
+    {
+        $("#job-status").html("话后处理");
+        TextAreaSystemInfo.innerHTML += "话后处理" + "<br />";
+        $("#btnTransfer").attr("disabled","false");
+        $("#btnTransfer").attr("class","call_button tonghuazhuanyi_d");
+        $("#btnProcess").val("完成");
+        //window.setTimeout("alert('nihao')",2000);
+        $("#btnProcess").removeAttr("disabled");
+        $("#btnProcess").attr("class","call_button shimang");
+        $("#btnPark").attr("disabled","false");
+        $("#btnDial").removeAttr("disabled");
+        $("#btnOffHook").attr("disabled","false");
+        $("#btnOffHook").attr("class","call_button yingda_d");
+        $("#btnHold").attr("disabled","false");
+        $("#btnHold").attr("class","call_button baochitonghua_d");
+        //$("#btnLogin").attr("disabled","false");
+        $("#btnLogout").removeAttr("disabled");
+        $("#btnLogonAgain").attr("disabled","false");
+        $("#btnExit").removeAttr("disabled");
+    }
+        break;
+    case 8:<!--保持-->
+    {
+        $("#job-status").html("保持");
+        TextAreaSystemInfo.innerHTML += "保持" + "<br />";
+        $("#btnTransfer").attr("disabled","false");
+        $("#btnTransfer").attr('class','call_button tonghuazhuanyi_d');
+        $("#btnProcess").attr("disabled","false");
+        $("#btnProcess").attr("class","call_button shimang_d");
+        $("#btnPark").attr("disabled","false");
+        $("#btnDial").attr("class","call_button shoudonghuchu");
+        $("#btnDial").removeAttr("disabled");
+        $("#btnOffHook").val("挂机");
+        $("#btnOffHook").attr("disabled","false");
+        $("#btnOffHook").attr("class","call_button yingda_d");
+        $("#btnHold").val("恢复");
+        $("#btnHold").removeAttr("disabled");
+        $("#btnHold").attr("class","call_button baochitonghua");
+        //$("#btnLogin").attr("disabled","false");
+        $("#btnLogout").removeAttr("disabled");
+        $("#btnLogonAgain").attr("disabled","false");
+        $("#btnExit").removeAttr("disabled");
+        //$("#btnConference").removeAttr("disabled");;
+    }
+        break;
+    case 9:<!--被保持-->
+    {
+        $("#job-status").html("被保持");
+        TextAreaSystemInfo.innerHTML += "被保持" + "<br />";
+        $("#btnTransfer").attr("disabled","false");
+        $("#btnTransfer").attr('class','call_button tonghuazhuanyi_d');
+        $("#btnProcess").attr("disabled","false");
+        $("#btnProcess").attr("class","call_button shimang_d");
+        $("#btnPark").attr("disabled","false");
+        $("#btnDial").attr("disabled","false");
+        $("#btnOffHook").val("挂机");
+        $("#btnOffHook").removeAttr("disabled");
+        $("#btnOffHook").attr("class","call_button yingda");
+        $("#btnHold").attr("disabled","false");
+        $("#btnHold").attr("class","call_button baochitonghua_d");
+        // $("#btnLogin").attr("disabled","false");
+        $("#btnLogout").removeAttr("disabled");
+        $("#btnLogonAgain").attr("disabled","false");
+        $("#btnExit").removeAttr("disabled");
+    }
+        break;
+    case 10:<!--拨号-->
+    {
+        $("#job-status").html("拨号");
+        TextAreaSystemInfo.innerHTML += "拨号" + "<br />";
+        $("#btnTransfer").attr("disabled","false");
+        $("#btnTransfer").attr('class','call_button tonghuazhuanyi_d');
+        $("#btnProcess").attr("disabled","false");
+        $("#btnProcess").attr("class","call_button shimang_d");
+        $("#btnMonit").attr("class","call_button jianting yingda_d");
+        $("#btnPark").attr("disabled","false");
+        $("#btnDial").attr("disabled","false");
+        $("#btnOffHook").val("挂机");
+        $("#btnMonit").addClass("yingda_d");
+        $("#btnOffHook").removeAttr("disabled");
+        $("#btnOffHook").attr("class","call_button yingda");
+        $("#btnHold").attr("disabled","false");
+        $("#btnHold").attr("class","call_button baochitonghua_d");
+        // $("#btnLogin").attr("disabled","false");
+        $("#btnLogout").removeAttr("disabled");
+        $("#btnLogonAgain").attr("disabled","false");
+        $("#btnExit").removeAttr("disabled");
+    }
+        break;
+    case 11:<!--保持下拨号-->
+    {
+        $("#job-status").html("保持下拨号");
+        TextAreaSystemInfo.innerHTML += "保持下拨号" + "<br />";
+        $("#btnTransfer").attr("disabled","false");
+        $("#btnTransfer").attr('class','call_button tonghuazhuanyi_d');
+        $("#btnProcess").attr("disabled","false");
+        $("#btnProcess").attr("class","call_button shimang_d");
+        $("#btnPark").attr("disabled","false");
+        $("#btnDial").attr("disabled","false");
+        $("#btnOffHook").val("挂机");
+        $("#btnOffHook").removeAttr("disabled");
+        $("#btnOffHook").attr("class","call_button yingda");
+        $("#btnHold").attr("disabled","false");
+        $("#btnHold").attr("class","call_button baochitonghua_d");
+        // $("#btnLogin").attr("disabled","false");
+        $("#btnLogout").removeAttr("disabled");
+        $("#btnLogonAgain").attr("disabled","false");
+        $("#btnExit").removeAttr("disabled");
+    }
+        break;
+    case 12:<!--保持下通话-->
+    {
+        $("#job-status").html("保持下通话");
+        TextAreaSystemInfo.innerHTML += "保持下通话" + "<br />";
+        $("#btnTransfer").removeAttr("disabled");
+        $("#btnTransfer").attr('class','call_button tonghuazhuanyi');;
+        $("#btnProcess").attr("disabled","false");
+        $("#btnProcess").attr("class","call_button shimang_d");
+        $("#btnPark").attr("disabled","false");
+        $("#btnDial").attr("disabled","false");
+        $("#btnOffHook").val("挂机");
+        $("#btnOffHook").removeAttr("disabled");;
+        $("#btnOffHook").attr("class","call_button yingda");
+        $("#btnHold").attr("disabled","false");
+        $("#btnHold").attr("class","call_button baochitonghua_d");
+        $("#btnMute").removeAttr("disabled");
+        $("#btnMute").attr("class","call_button jingyin");
+        //$("#btnLogin").attr("disabled","false");
+        $("#btnLogout").removeAttr("disabled");
+        $("#btnLogonAgain").attr("disabled","false");
+        $("#btnExit").removeAttr("disabled");
+        if (InfobirdCCClient.GetCanConference()){
+            $("#btnConference").removeAttr("disabled");
+        }   <!--“保持下通话”状态下，并且当前座席配置了三方通话功能的情况下，才允许执行三方通话-->
+    }
+        break;
+    case 13:<!--通话语音通道未建立-->
+    {
+        $("#job-status").html("通话语音通道未建立");
+        TextAreaSystemInfo.innerHTML += "Agent_ConnSucc_NoSend" + "<br />";
+        //$("#btnLogin").removeAttr("disabled");;
+        $("#btnLogout").removeAttr("disabled");
+        $("#btnLogonAgain").attr("disabled","false");
+        $("#btnExit").removeAttr("disabled");
+    }
+        break;
+    case 14:<!--预拨号-->
+    {
+        $("#job-status").html("预拨号");
+        TextAreaSystemInfo.innerHTML += "预拨号" + "<br />";
+        $("#btnTransfer").attr("disabled","false");
+        $("#btnProcess").attr("disabled","false");
+        $("#btnProcess").attr("class","call_button shimang_d");
+        $("#btnPark").attr("disabled","false");
+        $("#btnDial").attr("disabled","false");
+        $("#btnOffHook").attr("disabled","false");
+        $("#btnOffHook").attr("class","call_button yingda_d");
+        $("#btnHold").attr("disabled","false");
+        $("#btnHold").attr("class","call_button baochitonghua_d");
+        //$("#btnLogin").attr("disabled","false");
+        $("#btnLogout").removeAttr("disabled");
+        $("#btnLogonAgain").attr("disabled","false");
+        $("#btnExit").removeAttr("disabled");
+    }
+        break;
+    case 15:<!--主持三方通话-->
+    {
+        $("#job-status").html("支持三方通话");
+        TextAreaSystemInfo.innerHTML += "Agent_ConferencePreside" + "<br />";
+        //$("#btnLogin").attr("disabled","false");
+        $("#btnLogout").removeAttr("disabled");
+        $("#btnLogonAgain").attr("disabled","false");
+        $("#btnExit").removeAttr("disabled");
+        $("#btnConference").removeAttr("disabled");;
+        $("#btnConference").val("结束通话");
+    }
+        break;
+    case 16:<!--被邀加入三方通话-->
+    {
+        $("#job-status").html("被邀入三方通话");
+        TextAreaSystemInfo.innerHTML += "Agent_ConferenceJoin" + "<br />";
+        // $("#btnLogin").attr("disabled","false");
+        $("#btnLogout").removeAttr("disabled");
+        $("#btnLogonAgain").attr("disabled","false");
+        $("#btnExit").removeAttr("disabled");
+        $("#btnConference").attr("disabled","false");
+    }
+        break;
+    case 17:<!--座席转IVR后保持-->
+    {
+        $("#job-status").html("坐席转IVR后保持");
+        TextAreaSystemInfo.innerHTML += "座席转IVR后保持" + "<br />";
+        // $("#btnLogin").attr("disabled","false");
+        $("#btnLogout").removeAttr("disabled");
+        $("#btnLogonAgain").attr("disabled","false");
+        $("#btnExit").removeAttr("disabled");
+    }
+        break;
+    default:
+    {
+        $("#job-status").html("其它");
+        $("#btnTransfer").attr("disabled","false");
+        $("#btnTransfer").attr('class','call_button tonghuazhuanyi_d');
+        $("#btnProcess").attr("disabled","false");
+        $("#btnProcess").attr("class","call_button shimang_d");
+        $("#btnPark").attr("disabled","false");
+        $("#btnDial").attr("disabled","false");
+        $("#btnOffHook").attr("disabled","false");
+        $("#btnOffHook").attr("class","call_button yingda_d");
+        $("#btnHold").attr("disabled","false");
+        $("#btnHold").attr("class","call_button baochitonghua_d");
+        // $("#btnLogin").removeAttr("disabled");;
+        $("#btnLogout").attr("disabled","false");
+        $("#btnLogonAgain").attr("disabled","false");
+        $("#btnExit").attr("disabled","false");
+    }
+        break;
+}
+
+if (m_iClientState==1 || m_iClientState==3 || m_iClientState==6 || m_iClientState==7)
+{
+    $("#btnMonit").removeAttr("disabled");
+    $("#btnMonit").attr("class","call_button jianting");
+}
+else
+{
+    $("#btnMonit").attr("disabled","false");
+    $("#btnMonit").attr("class","call_button jianting_d");
+}
+</script>
+
+<!-- 外呼 -->
+<script type="text/javascript" language="javascript" for="InfobirdCCClient" event="OnAgentOutdialConf(sCallID)">
+
+    //document.write(sCallID);
+    var callid = sCallID;
+	// 为隐藏input设置呼入电话号码
+    $("#call_id").val( callid );
+</script>
+
+<!-- 来电 -->
+<script type="text/javascript" language="javascript" for="InfobirdCCClient" event="OnCallDelivered(sCallID, sCaller, sCallee, sOriginalData)">
+    //alert('nihao');
+    var callid = sCallID;
+    var caller = sCaller;
+    var callee = sCallee;
+    var cont = caller+"呼入,坐席振铃";
+    //alert(cont);
+    var tt = writeLog(cont);
+    var originaldata = sOriginalData;
+
+    if(caller.length>11 && caller.substr(0,1)=='0'){
+        caller = caller.substr(1,caller.length-1);
+    }
+	// 为隐藏input设置呼入电话号码
+    $("#callin_num").val( caller );
+    var calls = callReplace(caller);
+    //alert(calls);
+    $("#call_id").val( callid );
+    $("#phone_num").val( calls );
+    $("#phone_num_black").val( calls );
+    $("#custom_phone").text( calls );
+    get_user_info(caller);
+    //呼入弹窗
+    $('#hujiaodanju_edit').modal();
+    $(".modal-dialog").css({"width":"700px","margin":"auto"});
+    $(".modal").css({"width":"700px","margin":"10px auto","overflow":"visible"});
+    
+</script>
+<script type="text/javascript">
+    $(document).ready(function() {
+    	
+        $("#reload_phone").click(function () {
+            var tel_num = $.trim($("#phone_num_search").val());
+            get_user_info(tel_num);
+        });
+        $("#husun_reload_phone").click(function(){
+            var tel_num = $.trim($("#husun_phone_num_search").val());
+            get_user_husun_info(tel_num);
+        });
+        
+        $("#save_husun").click(function(){
+            if($("#husun_member_guid").val()){
+                //alert($('#tan-invokeid').attr('tan-invokeid'));
+                var data='member_guid='+$("#husun_member_guid").val()+"&"+'car_num='+$("#husun_car_num").val()+"&"+'car_type='+$("#husun_car_type").val()+"&"+'call_address='+$("#husun_call_address").val()+"&"+'other_info='+$("#husun_other_info").val()+'&invokeid='+$('#tan-invokeid').attr('tan-invokeid');
+                $.ajax({
+                    url:'/Index/doCallIn',
+                    data: data,
+                    dataType: 'json',
+                    type: "POST",
+                    success: function(data){
+                        if (data.suc==1){
+                            alert('保存成功！');
+                            var cont = '保存了会员'+$("#husun_user_name").val()+'的呼救信息';
+                            writeLog(cont);
+                            if(data.sos_id!='') {
+                                $("#husundanju_edit").modal("hide");
+                                todoInfo(data.sos_id);
+                            }
+                        }else{
+                            alert('保存失败！');
+                        }
+                    }
+                });
+            }else{
+                alert('会员信息不能为空!请询问客户注册会员的手机号,查找会员信息!');
+            }
+
+        });
+        $("#save_cancel").click(function(){
+            if(confirm('确定取消此工单吗？工单内容将不会被保存！')){
+                var invokeid = $('#tan-invokeid').attr('tan-invokeid');
+                $.ajax({
+                    url:'/Index/husunCancel',
+                    data:'invokeid='+invokeid,
+                    dataType: 'text',
+                    type: "POST",
+                    success: function(data){
+                        if (data==1){
+                            alert('取消成功！此工单将不会被保存');
+                            var cont = '取消了会员'+$("#husun_user_name").val()+'的呼损回拨信息';
+                            writeLog(cont);
+                        }else{
+                            alert('取消失败！');
+                        }
+                    }
+                });
+            }
+
+        });
+        
+    });
+    function get_user_husun_info(phone_num){
+//提交电话号码查询车辆信息
+        $.ajax({
+            url:'/Index/callIn',
+            data: 'tel_num='+phone_num,
+            dataType: 'json',
+            type: "POST",
+            success: function(data){
+                //alert(data.user_name);
+                //返回信息解析
+                //数据返回格式	//{"phone_num":"phone_num","phone_num_search":"phone_num_search","user_name":"user_name","user_level":"user_level","sex":"sex","user_address":"user_address","car_num":"car_num","car_type":"car_type","call_address":"call_address","other_info":"other_info"}
+                if (data != null){
+                    //alert(data.member_guid);
+                    $("#husun_user_name").val(data.user_name);
+                    $("#husun_user_level").val(data.user_level);
+                    if(data.sex == 1){
+                        //alert(data.sex);
+                        $("#weman-radio-callin").css('display','none');
+                        $("#man-radio-callin").css('display','block');
+                        //$("#husun_sex1").prop('checked',true);
+                        //$("#husun_sex2").prop('checked',false);
+                    }else if(data.sex == 2){
+                        $("#weman-radio-callin").css('display','block');
+                        $("#man-radio-callin").css('display','none');
+                        //alert(data.sex)
+                        //$("#husun_sex2").prop('checked',true);
+                        //$("#husun_sex1").prop('checked',false);
+                    }else{
+                        $("#weman-radio-callin").css('display','none');
+                        $("#man-radio-callin").css('display','none');
+                    }
+                    $("#husun_user_address").val(data.user_address);
+                    $("#husun_car_num").val(data.car_num);
+                    $("#husun_call_address").val(data.call_address);
+                    $("#husun_other_info").val(data.other_info);
+                    $("#husun_car_type").val(data.car_type);
+                    $("#husun_member_guid").val(data.member_guid);
+                    //$('#husun_invokeid').val(data.invokeid);
+                }else{
+                    //alert('没有相关信息！');
+                }
+            }
+        });
+    }
+    
+    function get_user_info(phone_num){
+	
+	$('#hujiaodanju_edit').modal();
+    $(".modal-dialog").css({"width":"700px","margin":"auto"});
+    $(".modal").css({"width":"700px","margin":"10px auto","overflow":"visible"});
+		//提交电话号码查询会员信息
+        $.ajax({
+            url:'/Index/callIn',
+            data: 'phone_num='+phone_num,
+            dataType: 'json',
+            type: "POST",
+            success: function(data){
+            	if (data.error == 1){
+                    //alert(data.member_guid);
+                    $("#saveCustomData").hide();
+                    $(".white_box").show();
+                    $(".black_box").hide();
+                    if(data.sex == 1){
+                        //alert(data.sex);
+                        $("#weman-radio-call").css('display','none');
+                        $("#man-radio-call").css('display','block');
+                    }else if(data.sex == 2){
+                        //alert(data.sex)
+                        $("#weman-radio-call").css('display','block');
+                        $("#man-radio-call").css('display','none');
+                    }else{
+                        $("#weman-radio-call").hide();
+                        $("#man-radio-call").hide();
+                        $("#sec-radio-call").show();
+                        
+                    }
+                    $("#saveCustomData").hide();
+                    $("#user_name").val( data.user_name);
+                    $("#custom_name").text(data.user_name? data.user_name: '无');
+                    $("#user_address").val( data.province+data.city );
+                    $("#custom_address").text( data.province + data.city + '(' + data.isp + ')' );
+                    //$("#member_guid").val(data.member_guid);
+                }else{
+                	$.get("/Index/getProvinceList", function(data){
+                		  $("#saveProvince").html( data );
+                	});
+                	$.get("/Index/getCityList", function(data){
+              		  $("#saveCity").html( data );
+              		});
+                	$(".white_box").hide();
+                    $(".black_box").show();
+                	$("#saveCustomData").show();
+                }
+            	$("iframe").attr("src", '/callin/index/phone_num/'+phone_num);
+            }
+        });
+
+    }
+</script>
+<script type="text/javascript">
+    //点击工号直接呼出
+    function callTo(phonenum){
+        if(m_iClientState == 0){
+            return;
+        }
+        if(phonenum!=null){
+            InfobirdCCClient.ActionOutDial(phonenum);
+            $("#offhook-begin").attr('value', $.now());
+        }
+        writeLog('呼出到坐席'+phonenum);
+    }
+
+</script>
+<div class="modal fade bs-example-modal-lg" data-backdrop="false" id="getfreeAgent" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="myModalLabel">空闲坐席列表</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12" id="getfreeAgent_list" style="height:auto;">
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-warning" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 获取空闲座席列表，可用于呼叫座席 -->
+<script type="text/javascript" language="javascript" for="InfobirdCCClient" event="OnGetFullFreeAgentInfo(sAgentList)">
+    //alert(sAgentList);
+
+    $.ajax({
+        type:"POST",
+        url :"/callin/getJson",
+        data:"tojson="+sAgentList,
+        dataType:'html',
+        success:function(data){
+            //alert('nihao');
+            //alert(data);
+            $("#getfreeAgent_list").html(data);
+        }
+    });
+    $('#getfreeAgent').modal();
+    $(".modal-dialog").css({"width":"700px","margin":"auto"});
+    $(".modal").css({"width":"700px","margin":"10px auto","overflow":"visible"});
+	$("body").css("padding-right","0px");
+    //alert(Listinfo.length);
+    <!-- sAgentList范例："|北京售前,|北京托管销售,guiyl@infobird.cn(),liuyj@infobird.cn(笨笨),|北京自建销售,yany@infobird.cn(yany),|财务部," -->
+</script>
+<!-- 获取通话座席列表，可用于监听 -->
+<script type="text/javascript" language="javascript" for="InfobirdCCClient" event="OnGetFullTalkingAgentInfo(sAgentList)">
+    <!-- 如果座席是普通班长席，那么获取到通话座席列表范例为："11@11.com(王伟),604481728,10346|22@22.com(),651258944,39826|".  如果座席是超级班长席，那么获取到的通话座席列表的范例为："投诉组,11@11.com(王伟),604481728,10346|投诉组,22@22.com(),651258944,39826|业务组,33@33.com(),654312347,20774|" -->
+</script>
+
+<!-- IVR转回座席事件 -->
+<script type="text/javascript" language="javascript" for="InfobirdCCClient" event="OnIVRReturnToAgentConf(sIVRPrivateData)">
+
+</script>
+
+<!-- 特定事件通知接口 -->
+<script type="text/javascript" language="javascript" for="InfobirdCCClient" event="OnUserLoginInfo(iType,sInfo)">
+    switch (iType)
+    {
+        case 0:
+        {	TextAreaSystemInfo.innerHTML += sInfo+"<br />";	}
+            break;
+        case 1:
+        {	TextAreaSystemInfo.innerHTML += "座席登录成功!"+"<br />";
+            $(".member-form").attr('action','/Index/appsosInfo');
+            formId = '.member-form';
+            page_search_url = $(".member-form").attr('action');
+            get_sosinfo();
+        }
+            break;
+        case 2:
+        {	TextAreaSystemInfo.innerHTML += sInfo+"<br />";	}
+            break;
+        case 3:
+        {	alert(sInfo+"登录失败"); }
+            break;
+        case 4:
+        {	alert(sInfo+"登录失败"); }
+            break;
+        case 5:
+        {	}
+            break;
+        case 6:
+        {	alert(sInfo+"提示"); }
+            break;
+        case 7:
+        {	alert(sInfo+"提示"); }
+            break;
+        case 10:
+        {	}
+            break;
+        case 11:
+        {	}
+            break;
+        case 20:
+        {	alert("未发现本地音频输入/输出设备，如发现通话异常，请先结束通话，退出客户端，然后确认主机硬件音频设备工作良好，配置正确，然后再登陆客户端尝试通话。警告!"); }
+            break;
+        case 100:
+        {	}
+            break;
+        case 101:
+        { }
+            break;
+        default:
+            break;
+    }
+</script>
+<!--各种系统通知-->
+<script type="text/javascript" language="javascript" for="InfobirdCCClient" event="OnChatMsgDelivered(sTalker,sChatContent,bIsCallInfo)">
+    TextAreaSystemInfo.innerHTML += sTalker + ":" + sChatContent + "<br />";
+</script>
+
+<!--坐席登陆系统成功后返回的坐席信息-->
+<script type="text/javascript" language="javascript" for="InfobirdCCClient" event="OnNotifyAgentLoginConf(sAgentLoginInfo)">
+    //alert(sAgentLoginInfo);
+</script>
+
+<!--非等待状态获得排队数目-->
+<script type="text/javascript" language="javascript" for="InfobirdCCClient" event="OnQueueSize(lQueueSize)">
+    if(lQueueSize!=0){
+        lQueueSize ="排队数："+lQueueSize;
+        $('#paidui-list').html(lQueueSize);
+    }else{
+        $('#paidui-list').html();
+    }
+
+</script>
+<script type="text/javascript">
+$(document).ready(function() {
+	
+	$('#outDial').on('hidden.bs.modal', function (e) {
+		  // 外呼按钮状态改变
+		  $("#btnDial").attr("class","call_button shoudonghuchu");
+	});
+	
+	  //百度地图
+	  /* var public_map;
+	 	  public_map= new BMap.Map("public_map");
+		  public_map.enableAutoResize();
+      	  public_map.enableScrollWheelZoom();   //启用滚轮放大缩小，默认禁用
+      	  public_map.enableContinuousZoom();
+	 	  var point = new BMap.Point(114.3162,30.581084);
+	  	  public_map.centerAndZoom(point,16);	  
+		 //地图取点的地址信息
+		 public_map.addEventListener("click",function(e){
+         	get_point(e.point);  
+		  // $("#gps_logo").html( $("#gps_logo").html() + " | " + e.point.lng +"#"+e.point.lat +"<br>")                        
+         });
+		 
+	 */ 
+	 
+	 /*  省份所对应的城市进行联动  add by czj */
+	 $("#saveProvince").change(function(){
+		 var pId = $(this).val();
+		 console.log( pId );
+		 $.get("/Index/getCityList", {pId:pId}, function(data){
+     		  $("#saveCity").html( data );
+       	 });
+	 });
+	 
+	 $("#saveCustomData").click(function(){
+		 var phone_num = $("#callin_num").val();
+		 var custrom_name = $("#save_user_name").val();
+		 var sex = $("[name=sex]").val();
+		 var province = $("#saveProvince option:selected").text();
+		 var city = $("#saveCity option:selected").text();
+		 $.ajax({
+		        type:"POST",
+		        url :"/Index/doSaveCunstomData",
+		        data:{phone_num:phone_num,custrom_name:custrom_name,sex:sex,province:province,city:city},
+		        dataType:'json',
+		        success:function(data){
+		        	alert( data.msg );
+	        		$("#hujiaodanju_edit").modal('hide');
+		       }
+		 });
+	 });
+	 
+	 function get_location(str){
+		var myGeo = new BMap.Geocoder();
+		// 将地址解析结果显示在地图上,并调整地图视野
+		myGeo.getPoint(str, function(point){
+			if (point) {
+				public_map.clearOverlays();
+				public_map.centerAndZoom(point, 18);
+				public_map.addOverlay(new BMap.Marker(point));
+				var geoc = new BMap.Geocoder();
+				//返回点详细地址
+				geoc.getLocation(point, function(rs){
+					var addComp = rs.addressComponents;
+					var address_str=addComp.province+addComp.city+ addComp.district+addComp.street+addComp.streetNumber;
+					$("#location_str").val(address_str);
+	                $.ajax({
+	                    url:'/Index/getShoplist',
+	                    data:'lng='+point.lng+'&lat='+point.lat+'&prov='+addComp.province+'&city='+addComp.city,
+	                    type:'POST',
+	                    dataType:'json',
+	                    success:function(data) {
+	                        $('#weixiu-shop-list').css('display','block');
+	                        //alert(data.lng);
+	                        //alert(data.count);
+	                        $("#prov").html(data.provhtml);
+	                        $("#city").html(data.cityhtml);
+	                        $("#shop").html(data.shophtml);
+	                        $('#weixiu-shop-list').html(data.shop_list);
+	                    }
+	                });
+				})
+				
+				/*//设置信息窗口
+				var opts = {
+					width : 200,     // 信息窗口宽度
+					height: 75,     // 信息窗口高度
+					title : "查询地址:" , // 信息窗口标题
+					enableMessage:false,//设置允许信息窗发送短息
+					//message:"亲耐滴，晚上一起吃个饭吧？戳下面的链接看下地址喔~"
+				}
+				//创建信息窗口
+				var infoWindow = new BMap.InfoWindow(str, opts);  // 创建信息窗口对象
+				marker.addEventListener("click", function(){          
+									return false;
+				});
+				infoWindow.addEventListener("click", function(){          
+								
+									return false;
+				});
+				//显示信息窗口
+				public_map.openInfoWindow(infoWindow,point);*/
+				$("#location_str").val(str);
+				$("#location_lng").val(point.lng);
+				$("#location_lat").val(point.lat);
+			}
+		}, "武汉市");
+	}
+	
+	function get_point(point){
+									//清除所有标注点
+									public_map.clearOverlays();
+									//定义一个标注点
+									var marker = new BMap.Marker(point);
+									//地图上标注该点
+									public_map.addOverlay(marker);
+									public_map.centerAndZoom(point);
+									var geoc = new BMap.Geocoder();
+									//取该点地址
+									geoc.getLocation(point, function(rs){
+										var addComp = rs.addressComponents;
+										var address_str=addComp.province+addComp.city+ addComp.district+addComp.street+addComp.streetNumber;
+										/*//设置信息窗口
+										var opts = {
+											width : 200,     // 信息窗口宽度
+											height: 100,     // 信息窗口高度
+											title : "" , // 信息窗口标题
+											enableMessage:false,//设置允许信息窗发送短息
+											//message:"亲耐滴，晚上一起吃个饭吧？戳下面的链接看下地址喔~"
+										}
+										//创建信息窗口
+										var infoWindow = new BMap.InfoWindow(address_str, opts);  // 创建信息窗口对象
+										marker.addEventListener("click", function(){          
+											return false;
+										});
+										infoWindow.addEventListener("click", function(){          
+											return false;
+										});
+									
+										//显示信息窗口
+										public_map.openInfoWindow(infoWindow,point);*/
+										$("#location_str").val(address_str);
+										$("#location_lng").val(point.lng);
+										$("#location_lat").val(point.lat);
+                                        $.ajax({
+                                            url:'/Index/getShoplist',
+                                            data:'lng='+point.lng+'&lat='+point.lat+'&prov='+addComp.province+'&city='+addComp.city,
+                                            type:'POST',
+                                            dataType:'json',
+                                            success:function(data) {
+                                                $('#weixiu-shop-list').css('display','block');
+                                                //alert(data.lng);
+                                                //alert(data.count);
+                                                $("#prov").html(data.provhtml);
+                                                $("#city").html(data.cityhtml);
+                                                $("#shop").html(data.shophtml);
+                                                $('#weixiu-shop-list').html(data.shop_list);
+                                            }
+                                            });
+
+									});
+	
+	}  
+	
+	function set_point(point){
+					//清除所有标注点
+					public_map.clearOverlays();
+					var marker = new BMap.Marker(point);
+					//地图上标注该点
+					public_map.addOverlay(marker);
+					var t=setTimeout(function(){public_map.centerAndZoom(point,18)},500);
+        get_point(point);
+	}  
+	//需要定位值的form
+	var public_obj; 
+	 //地址查询
+	 $("#get_location_point").click(function(){
+		  get_location($("#location_str").val());
+     })
+	 //保存地址信息
+	 $("#save_location_point").click(function(){
+			 if ($("#location_str").val()!=""){		 	 
+				public_obj.find(".location_str").val($("#location_str").val());
+				public_obj.find(".location_lng").val($("#location_lng").val());
+				public_obj.find(".location_lat").val($("#location_lat").val());
+			}
+		  $("#get_map_location").modal('hide');
+			//public_map="";   
+	 })
+	 
+	 //弹出地图
+	 $(".get_location_btn").click(function(){
+		public_obj=$(this).parents("form")
+         $("#location_str").val($("input[name='location_name']").val());
+		$("#get_map_location").modal();
+         $(".modal-dialog").css({"width":"700px","margin":"2% auto"});
+		$("body").css("padding-right","0px");
+         $("#get_location_point").click();
+
+        //if (public_obj.has(".location_str")){$("#location_str").val(public_obj.find(".location_str").val())}
+		//if (public_obj.has(".location_lng")){$("#location_lng").val(public_obj.find(".location_lng").val())}
+		//if (public_obj.has(".location_lat")){$("#location_lat").val(public_obj.find(".location_lat").val())}
+		//if ($("#location_lng").val()!=="" && $("#location_lat").val()!=""){
+			 //var point = new BMap.Point($.trim($("#location_lng").val()),$.trim($("#location_lat").val()));
+			 //set_point(point);
+		//}else{
+
+        //}
+	 }) 	 
+});
+</script>
+
+<!-- end main-right-col -->
+<script type="text/javascript">
+    $(document).ready(function(){
+        $('#Popup-alert').css('display','none');
+        $("#iframediv").css("display","none");
+        $("#callcontent").css("display","none");
+        $("#recordinfo").css("display","none");
+        //$("#indexdiv").css("display","none");
+    });
+</script>
+
+<script type="text/javascript">
+
+    function changeMs_mem(){
+        var mem_mes = "亲爱的车主memberrepx，我们已安排工程师engine（电话：enphone）为您服务，他将于cometime之内抵达。如有疑问请致电4001868555";
+        mem_mes = mem_mes.replace('member',$('#member_name').val());
+        if($("input[name='sex11']:checked").val()==1){
+            mem_mes = mem_mes.replace('repx','男士');
+        }else if($("input[name='sex11']:checked").val()==2){
+            mem_mes = mem_mes.replace('repx','女士');
+        }else{
+            mem_mes = mem_mes.replace('repx','');
+        }
+        mem_mes = mem_mes.replace('engine',$('#engine-name').val());
+        mem_mes = mem_mes.replace('enphone',$('#engine-mobile').val());
+        mem_mes = mem_mes.replace('cometime',$('#come-time').find("option:selected").text());
+
+        $('#mess-send').val($('#mem-mobile').val());
+        $('#mess-title').innerText = $('#send-mes-mem').innerText;
+        $('#mes-content').val(mem_mes);
+    }
+    function changeMs_eng(){
+        var engine_mes = "救援通知：model车主memberrepx，电话：conmethod，车牌号：plate，位置：location，备注：beizhu。请于cometime之内抵达。如有问题请致电4001868555";
+        if($('#model').val()){
+            engine_mes = engine_mes.replace('model',$('#model').val());
+        }else{
+            engine_mes = engine_mes.replace('model','');
+        }
+        engine_mes = engine_mes.replace('member',$('#member_name').val());
+        if($("input[name='sex11']:checked").val()==1){
+            engine_mes = engine_mes.replace('repx','先生');
+        }else if($("input[name='sex11']:checked").val()==2){
+            engine_mes = engine_mes.replace('repx','女士');
+        }else{
+            engine_mes = engine_mes.replace('repx','');
+        }
+        engine_mes = engine_mes.replace('conmethod',$('#mem-mobile').val());
+        engine_mes = engine_mes.replace('plate',$('#plate_license').val());
+        engine_mes = engine_mes.replace('location',$('.location_str').val());
+        engine_mes = engine_mes.replace('beizhu',$('#other_info_exp').val());
+        engine_mes = engine_mes.replace('cometime',$('#come-time').find("option:selected").text());
+
+        $('#mess-send').val($('#engine-mobile').val());
+        $('#mess-title').innerText = $('#send-mes-engine').innerText;
+        $('#mes-content').val(engine_mes);
+    }
+    //发送短信
+    function sendMes(){
+        var data = 'mobile='+$('#mess-send').val()+'&message='+$('#mes-content').val();
+        $.ajax({
+            url:'/Index/sendMes',
+            type:'POST',
+            data:data,
+            dataType:'text',
+            success:function(data){
+                if(data==1){
+                    var cont = '向手机'+$('#mess-send').val()+'发送了短信'+$('#mes-content').val();
+                    writeLog(cont);
+                    alert('发送成功！');
+                }else if(data==0){
+                    alert('发送失败！');
+                }
+            }
+        })
+    }
+
+    //泡泡处理按钮触发事件
+    function ppsubmit(){
+        //alert("nihao");
+        var id = $("#pp_submit").attr('duty_id');
+        var invokeid = $('#pp_submit').attr('invokeid');
+        $(".close_pp").click();  //点击处理后隐藏泡泡层
+        //alert(id);
+        //$("#iframediv").css("display","none");
+        //$("#indexdiv").css("display","none");
+        if(id && !invokeid){
+            todoInfo(id);
+        }else if(id && invokeid){
+            callBack_Click(id,invokeid);
+        }
+
+    }
+
+
+    //呼救处理弹出页面
+    function todoInfo(id){
+        //alert('iii');
+        $("#iframediv").css("display","none");
+        $("#callcontent").css("display","block");
+        $("#inputcall").css("display","block");
+        $("#call-list").css("display","none");
+        $("#recordinfo").css("display","block");
+        $("#indexdiv").css("display","none");
+        $('#weixiu-shop-list').css('display','none');
+        //清除历史记录缓存数据
+        $("#help-node").html('');
+        $('#weixiu-shop-list').html('');
+
+        $("#option11").prop('disabled',true);
+        $("#option22").prop('selected',true);
+        $("#option22").removeAttr('disabled');
+        $("#option33").removeAttr('disabled');
+        $("#option44").removeAttr('disabled');
+        $("#option55").removeAttr('disabled');
+
+        $("#option33").prop('selected',false);
+        $("#option44").prop('selected',false);
+        $("#option55").prop('selected',false);
+        //alert(id);
+            $.ajax({
+                url:"/Index/toDoduty",
+                data:"sos_id="+id,
+                type:"POST",
+                dataType:"json",
+                success:function(data){
+                    //alert(data.location_name);
+                    $("#member_name").val(data.member_name);
+                    $("#member-guid").val(data.sos_id);
+                    $("#mobile").val(data.mobile);
+                    $("#mem-mobile").val(data.real_mobile);
+                    $("#grade").val(data.grade);
+                    $("#address").val(data.address);
+                    $(".location_lng").val(data.lng);
+                    $(".location_lat").val(data.lat);
+                    if(data.sex == 1){
+                        //$("#sex11").prop("checked",true);
+                        //$("#sex22").prop("checked",false);
+                        $("#man-radio").css('display','block');
+                        $("#weman-radio").css('display','none');
+                    }else if(data.sex == 2){
+                        //$("#sex11").prop("checked",false);
+                        //$("#sex22").prop("checked",true);
+                        $("#weman-radio").css('display','block');
+                        $("#man-radio").css('display','none');
+                    }else{
+                        $("#weman-radio").css('display','none');
+                        $("#man-radio").css('display','none');
+                    }
+                    $("#model").val(data.model);
+                    $("#plate_license").val(data.plate_license);
+                    $(".location_str").val(data.location_name);
+                    $("#engine-name").val(data.engineer_name);
+                    $("#engine-mobile").val(data.engineer_phone);
+                    //$("#engine-phone").val(data.engineer_phone);
+                    //alert(data.other_info);
+                    $("#other_info_exp").val(data.other_info);
+                    if(!data.nodehtml){
+                        $("#help-node").html('');
+                    }else{
+                        $("#help-node").html(data.nodehtml);
+                    }
+                    $("#prov").html(data.provhtml);
+                    $("#city").html(data.cityhtml);
+                    $("#shop").html(data.shophtml);
+                    $("#store-mobile").val(data.shop_phone);
+                    $("#shop-phone").val(data.shop_phone);
+                    if(data.shop_list){
+                        $('#weixiu-shop-list').css('display','block');
+                        $('#weixiu-shop-list').html(data.shop_list);
+                    }else{
+                        $('#weixiu-shop-list').html('');
+                    }
+                    //$("#shop-phone").attr('real_shop_phone',data.real_shop_phone);
+                    if(data.cityhtml){
+                        $("#city").val(data.cityhtml);
+                    }
+                    if(data.shophtml){
+                        $("#shop").val(data.shophtml);
+                    }
+                    if(data.come_time){
+                        if(data.come_time ==1){
+                            $("#time-1").prop('selected',true);
+                        }else if(data.come_time ==2){
+                            $("#time-2").prop('selected',true);
+                        }else if(data.come_time ==3){
+                            $("#time-3").prop('selected',true);
+                        }else if(data.come_time ==4){
+                            $("#time-4").prop('selected',true);
+                        }else if(data.come_time ==5){
+                            $("#time-5").prop('selected',true);
+                        }else if(data.come_time ==6){
+                            $("#time-6").prop('selected',true);
+                        }else if(data.come_time ==7){
+                            $("#time-7").prop('selected',true);
+                        }else if(data.come_time ==8){
+                            $("#time-8").prop('selected',true);
+                        }else{
+                        }
+                    }
+                    //alert(data.status);
+                    //$("#city").html(data.cityhtml);
+                    if(data.status == 0){
+                        $("#option11").prop('disabled',true);
+                        //$("#option22").prop('selected',true);
+                        $("#option22").removeAttr('disabled');
+                        $("#option33").removeAttr('disabled');
+                        $("#option44").removeAttr('disabled');
+                        $("#option55").removeAttr('disabled');
+                    }else if(data.status == 1){
+                        $("#option22").removeAttr('disabled');
+                        $("#option33").removeAttr('disabled');
+                        $("#option44").removeAttr('disabled');
+                        $("#option55").removeAttr('disabled');
+                        $("#option11").prop('disabled',true);
+                        $("#option22").prop('selected',true);
+                    }else if(data.status == 2){
+                        $("#option11").prop('disabled',true);
+                        $("#option22").prop('disabled',true);
+                        $("#option33").removeAttr('disabled');
+                        $("#option44").removeAttr('disabled');
+                        $("#option55").removeAttr('disabled');
+                        $("#option33").prop('selected',true);
+                    }else if(data.status == 3){
+                        $("#option11").prop('disabled',true);
+                        $("#option22").prop('disabled',true);
+                        $("#option33").prop('disabled',true);
+                        $("#option44").removeAttr('disabled');
+                        $("#option55").removeAttr('disabled');
+                        $("#option44").prop('selected',true);
+                    }else if(data.status == 4){
+                        $("#option11").prop('disabled',true);
+                        $("#option22").prop('disabled',true);
+                        $("#option33").prop('disabled',true);
+                        $("#option44").prop('disabled',true);
+                        $("#option55").removeAttr('disabled');
+                        $("#option55").prop('selected',true);
+                    }else{
+                        $("#option11").prop('disabled',true);
+                        $("#option22").prop('selected',true);
+                        $("#option22").removeAttr('disabled');
+                        $("#option33").removeAttr('disabled');
+                        $("#option44").removeAttr('disabled');
+                        $("#option55").removeAttr('disabled');
+                    }
+
+                }
+            });
+
+    }
+    function saveHelp(){
+        //alert($('#member_name').val());
+        if(!$("input[name='shop_sele']:checked").val()){
+            var shop_id = $('#shop').val();
+        }else{
+            var shop_id = $("input[name='shop_sele']:checked").val();
+        }
+        var data = 'member_name='+$('#member_name').val()+'&grade='+$('#grade').val()+'&mobile='+$('#mem-mobile').val()+'&address='+$('#address').val()
+        +'&plate_license='+$('#plate_license').val()+'&model='+$('#model').val()+'&location_name='+$('.location_str').val()+'&other_info='+$('#other_info_exp').val()
+        +'&shop_id='+shop_id+'&come_time='+$('#come-time').val()+'&engineer_name='+$('#engine-name').val()+'&engineer_phone='+$('#engine-mobile').val()+'&sex='+$("input[name='sex11']:checked").val()+'&sos_id='+$('#member-guid').val()+'&status='+$('#statusexp').val()
+            +'&lng='+$(".location_lng").val()+'&lat='+$(".location_lat").val();
+        var node = 'other_info='+$('#other_info_exp').val()+'&status='+$('#statusexp').val()+'&sos_id='+$('#member-guid').val();
+        $.ajax({
+            type:'POST',
+            url:'/Index/saveHelp',
+            data : data,
+            dataType:'json',
+            success:function(data){
+                if(data.ii==1){
+                    $.ajax({
+                        type:"POST",
+                        url :"/Index/helpNode",
+                        data:node,
+                        dataType:'html',
+                        success:function(data){
+                            $("#help-node").html(data);
+                        }
+                    });
+                    var cont = '在呼叫处理页面保存了'+$('#member_name').val()+'的救援信息';
+                    writeLog(cont);
+                    alert('保存成功');
+                    $('#other_info_exp').html("");
+
+                }else{
+                    alert('保存失败');
+                }
+            }
+        })
+    }
+
+    //省市级联
+    function changeProv(){
+        var id = $("#prov_sec").val();
+        $.ajax({
+            url:"/Index/getCity",
+            type:'POST',
+            data:'reid='+id,
+            dataType:'json',
+            success:function(data){
+                $('#city').html(data.cityhtml);
+            }
+        })
+        //alert(id);
+    }
+
+    //市店级联
+    function changeCity(){
+        var id = $("#city_sec").val();
+        $.ajax({
+            url:"/Index/getShop",
+            type:'POST',
+            data:'shop_city='+id,
+            dataType:'json',
+            success:function(data){
+                $('#shop').html(data.shophtml);
+            }
+        })
+        //alert(id);
+    }
+
+    //店铺电话
+    function changeShop(){
+        var id = $("#shop_sec").val();
+        $.ajax({
+            url:"/Index/getPhone",
+            type:'POST',
+            data:'shop_id='+id,
+            dataType:'json',
+            success:function(data){
+                $('#shop-phone').val(data.phone);
+                $('#store-mobile').val(data.phone);
+            }
+        })
+    }
+
+    //获取首页显示内容
+    function get_content(id){
+        //alert(id);
+        if(id == "callcenter"){
+            formId='.member-form';
+            $(".member-form").attr('action','/Index/appsosInfo');
+            page_search_url = $(".member-form").attr('action');
+            //var da = null;
+            get_sosinfo();
+            $('#husun-table').html("<tr><th>呼救时间</th><th>会员姓名</th><th>车牌号码</th><th>联系电话</th><th>状态</th><th>操作</th></tr>");
+            $("#iframediv").css("display","none");
+            $("#indexdiv").css("display","block");
+            $("#callcontent").css("display","none");
+            $("#call-list").css("display","none");
+            $("#inputcall").css("display","none");
+            $("#recordinfo").css("display","none");
+            //$("#iframediv").css("display","none");
+        }else if(id == "tocallcont"){
+            $("#search-id").css('display','block');
+            formId='.member-form';
+            $(".member-form").attr('action','/Index/sosInfo');
+            page_search_url = $(".member-form").attr('action');
+            //var da = null;
+            get_sosinfo();
+            $('#husun-table').html("<tr><th>呼救时间</th><th>会员姓名</th><th>车牌号码</th><th>联系电话</th><th>处理人</th><th>状态</th><th>操作</th></tr>");
+            $('#change-name').html('救援信息');
+            $("#indexdiv").css("display","none");
+            $("#callcontent").css("display","block");
+            $("#call-list").css("display","block");
+            $("#inputcall").css("display","none");
+            $("#recordinfo").css("display","none");
+            $("#iframediv").css("display","none");
+        }else if(id == "mydutylist"){
+            $("#search-id").css('display','none');
+            formId='.member-form';
+            $(".member-form").attr('action','/Index/mysosInfo');
+            page_search_url = $(".member-form").attr('action');
+            //var da=null;
+            get_sosinfo();
+            $('#husun-table').html("<tr><th>呼救时间</th><th>会员姓名</th><th>车牌号码</th><th>联系电话</th><th>状态</th><th>操作</th></tr>");
+            $('#change-name').html('未处理完的救援');
+            $("#indexdiv").css("display","none");
+            $("#callcontent").css("display","block");
+            $("#call-list").css("display","block");
+            $("#inputcall").css("display","none");
+            $("#recordinfo").css("display","none");
+            $("#iframediv").css("display","none");
+        }else if(id == "husun"){
+            $("#search-id").css('display','none');
+            formId='.member-form';
+            $(".member-form").attr("action","/callman/getmycall.html");
+            page_search_url = $(".member-form").attr('action');
+            get_sosinfo();
+            $('#husun-table').html("<tr><th>呼救时间</th><th>会员姓名</th><th>联系电话</th><th>操作</th></tr>");
+            $('#change-name').html('未处理的呼损');
+            $("#indexdiv").css("display","none");
+            $("#callcontent").css("display","block");
+            $("#call-list").css("display","block");
+            $("#inputcall").css("display","none");
+            $("#recordinfo").css("display","none");
+            $("#iframediv").css("display","none");
+        }else{
+            $("#callcontent").css("display","none");
+            $("#iframediv").attr('src','/Index/'+id);
+            //$("#iframediv").attr('display','block');
+            $("#iframediv").css("display","block");
+            $("#indexdiv").css("display","none");
+        }
+    }
+
+</script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        //弹出呼叫单据编辑窗口
+        $(document).on("click",".show_modal",function(){
+            $('#hujiaodanju_edit').modal();
+            $(".modal-dialog").css({"width":"700px","margin":"2% auto"});
+			$("body").css("padding-right","0px")
+        })
+
+        //弹出会员编辑窗口
+        $(document).on("click",".show_modal2",function(){
+            $('#huiyuanxinxi_edit').modal();
+            $(".modal-dialog").css({"width":"700px","margin":"2% auto"});
+			$("body").css("padding-right","0px")
+        })
+        //弹出录音播放窗口
+        $(document).on("click",".play_mp3",function(){
+            $('#luyin_play').modal();
+            $(".modal-dialog").css({"width":"700px","margin":"2% auto"});
+			$("body").css("padding-right","0px")
+        })
+
+        //呼叫按钮状态改变
+        $(".call_button").click(function(){
+            if ($(this).attr("class").indexOf("_d")>0){
+                $(this).attr("class",$(this).attr("class").replace("_d",""));
+            }
+            else{
+                $(this).attr("class",$(this).attr("class")+"_d");
+            }
+        })
+    });
+
+    $(document).ready(function(){
+        //弹出短信编辑窗口
+        $(document).on("click",".show_modal2",function(){
+            $('#duanxin_edit').modal();
+            $(".modal").css({"width":"700px","margin":"10px auto","overflow":"visible"});
+            //$("#modal-dialog").css({"width":"700px","margin":"150px auto","overflow":"visible"});
+            $("#modal-dialog").css({"width":"700px","margin":"20% auto"});
+			$("body").css("padding-right","0px");
+        })
+        $(".pp_div").each(function(i, n) {
+            $(n).css({"z-index":parseInt($(n).css("z-index"))+i,"right":parseInt($(n).css("right"))+(i*10),"bottom":parseInt($(n).css("bottom"))+(i*10)});
+        });
+
+        $(".close_pp").on("click",function(){
+            var obj=$(this).parent("div").parent("div.pp_div");
+            obj.hide('500',function(){obj.hide()});
+        })
+
+        //getppDiv();
+        //var tt = setInterval(getppDiv,20000);
+        var ii = setInterval(getCallduty,120000);
+    });
+	/*
+    function getppDiv(){
+        $.ajax({
+            url:"/Index/fenDuty",
+            type:"POST",
+            dataType:"json",
+            success:function(data){
+                if(data){
+                    //alert(data.message);
+                    $(".close_pp").click();
+                    $("#pp_info").html(data.message);
+                    $("#pp_submit").attr('duty_id',data.duty_id);
+                    $("#pp_div").show('500');
+                    //$("#pp_submit").html('处理');
+                }
+            }
+        });
+    }
+	*/
+    function getCallduty(){
+        $.ajax({
+            url:"/callman/fencallduty.html",
+            type:"POST",
+            dataType:"json",
+            success:function(data){
+                if(data){
+                    if(data.invokeid){
+                        $("#pp_submit").attr('invokeid',data.invokeid);
+                    }
+                    $(".close_pp").click();
+                    $("#pp_info").html(data.message);
+                    if(data.duty_id){
+                        $("#pp_submit").attr('duty_id',data.duty_id);
+                    }
+                    $("#pp_div").show('500');
+                    //$("#pp_submit").html('回拨');
+                }
+            }
+        });
+    }
+    //var da = null;
+    var formId='.member-form';
+    var page_search_url = $(".member-form").attr('action');
+    function get_sosinfo(){
+        var url = $(".member-form").attr('action');
+        var da = getData();
+        $.ajax({
+            url:url,
+            data:da,
+            type:"POST",
+            dataType:'json',
+            success:function(data){
+                //alert(data.list);
+                if(data){
+                    $(".help-info").html(data.list);
+                    $(".pagestr").html(data.pagestr);
+                }
+            }
+        });
+    }
+    function getData(){
+        var da = 'status='+$("#sta-tus").val();
+        if($("#phone-num").val()){
+            da += '&phone-num='+$("#phone-num").val();
+        }
+        //alert($("#phone-num").val());
+        if($("#car-num").val()){
+            da += '&car-num='+$("#car-num").val();
+        }
+        return da;
+    }
+    
+	$(document).on("click","input[name='shop_sele']",function(){
+		var obj=$(this);
+	  	if (obj.attr("check_action")=="0"){
+	  		$("input[name='shop_sele']").attr("check_action","0")
+			obj.attr("check_action","1");
+		}else{
+			obj.attr("check_action","0");
+		}
+		if (obj.attr("check_action")=="0"){
+			obj.prop("checked",false);
+		}else{
+			obj.prop("checked",true);
+		}
+	});
+	function getNode(){
+    	var member_name = $("#member_name").val();
+       	var mobile = $("#mem-mobile").val();
+       	if(member_name){
+        	var url = '/member/searchconsumerecord.html'+'/memberName/'+member_name;
+       	}else{
+        	var url = '/member/searchconsumerecord.html'+'/mobile/'+mobile;
+       	}
+       	window.open(url);
+	}
+
+</script>
+<span class="STYLEMODEL">
+	<object id="InfobirdCCClient" classid="clsid:00EA5BBE-D690-489F-98C5-CFEECE85D930" name="InfobirdCCClient" viewastext="" height="0" width="0"></object>
+</span>
+<header class="container">
+			<input id="call_id" name="call_id" type="hidden">
+			<div class="row" style="overflow: hidden;">
+				<div class="logo pull-left"></div>
+				<p class="projectName" style="height: 78px;line-height: 78px;">客服管理中心</p>
+				<div class="customer-service clearfix pull-right">
+					<p class="customer-service-info pull-left">
+						<a>坐席分机:<span></span></a>
+					</p>
+					<p class="working-order">
+						<a>工作状态:
+							<span id="job-status" style="font-size:12px;" class="label label-success cursor_pointer">未登陆</span>
+						</a>
+						<a style="margin-left: 20px;">
+							<span class="glyphicon glyphicon-th-list cursor_pointer" id="showMyRecord"></span>
+						</a>
+					</p>
+					<!--<input name="btnLogonAgain" type="button" id="showMyRecord" value="操作记录" class="btn btn-default"  />-->
+					<!-- <p>
+					<input name="btnLogonAgain" type="button" id="btnLogonAgain" onClick="return btnLogonAgain_Click();" value="登录呼叫系统" disabled="false" class="btn btn-default"  />
+        			<input name="btnExit" type="button" id="btnExit" onClick="return btnExit_Click();" value="退出呼叫系统" disabled="false"  class="btn btn-default"  />
+					</p> -->
+				</div>
+				<div class="pull-right clearfix operation-buttons">
+					<div class="row text-center padding-top padding-bottom">
+				<div class="pull-right">
+					<div class="pull-left">
+						<input name="btnDial" id="btnDial" class="call_button shoudonghuchu yingda_d" onclick="btnDial_Call();" value="呼叫" disabled="disabled" type="button">
+					</div>
+					<div class="pull-left">
+						<input name="btnOffHook" id="btnOffHook" class="call_button yingda_d" onclick="return btnOffHook_Click();" value="摘机" disabled="disabled" type="button">
+					</div>
+					<div class="pull-left">
+						<input name="btnPark" id="btnPark" class="call_button xiuxi yingda_d" onclick="return btnPark_Click();" value="小休" disabled="disabled" type="button">
+					</div>
+					<div class="pull-left">
+						<input name="btnProcess" id="btnProcess" class="call_button shimang yingda_d" onclick="return btnProcess_Click();" value="示忙" disabled="disabled" type="button">
+					</div>
+					<div class="pull-left">
+						<input name="btnHold" id="btnHold" class="call_button baochitonghua yingda_d" onclick="return btnHold_Click();" value="保持" disabled="disabled" type="button">
+					</div>
+					<div class="pull-left">
+						<input name="btnTransfer" id="btnTransfer" class="call_button tonghuazhuanyi yingda_d" onclick="return btnTransfer_Click();" value="转移" disabled="disabled" type="button">
+					</div>
+				</div>
+				<div class="pull-right" style="clear: both;">
+					<div class="pull-left">
+						<input name="btnMute" id="btnMute" class="call_button jingyin yingda_d" onclick="return btnMute_Click();" value="静音" disabled="disabled" type="button">
+					</div>
+					<div class="pull-left">
+						<input name="btnConference" id="btnConference" class="call_button sanfangtonghua_d yingda_d" onclick="return btnConference_Click();" value="三方通话" disabled="disabled" type="button">
+					</div>
+					<div class="pull-left">
+						<input disabled="disabled" class="call_button neibuqiuzhu yingda_d" value="内部求助" id="btnGethelp" onclick="return btnGethelp_Click();" type="button">
+					</div>
+					<div class="pull-left">
+						<input name="btnMonit" id="btnMonit" onclick="return btnMonit_Click();" value="监听" disabled="disabled" class="call_button jianting yingda_d" type="button">
+					</div>
+					<div class="pull-left">
+						<input disabled="disabled" name="btnSettings" id="btnSettings" onclick="return btnSettings_Click();" class="call_button peizhi yingda_d" value="配置" type="button">
+					</div>
+					<!--<div class="pull-left">
+						<input name="btnTransferToIVR" type="button" id="btnTransferToIVR" onclick="return btnTransferToIVR_Click();" value="转IVR" disabled="false" class="call_button ivr_d" />
+					</div>-->
+					<div class="pull-left">
+						<input name="btnTwiceCheck" id="btnTwiceCheck" onclick="return btnTwiceCheck_Click();" value="二次验证" disabled="disabled" class="call_button erciyanzheng_d yingda_d" type="button">
+					</div>
+				</div>
+			</div>
+				</div>
+			</div>
+			<div id="outDial" class="modal fade">
+			  <div class="modal-dialog">
+			    <div class="modal-content">
+			      <div class="modal-header">
+			        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+			        <h4 class="modal-title">请输入呼叫号码</h4>
+			      </div>
+			      <div class="modal-body">
+			        <div class="form-group">
+			            <div class="input-group"><div class="input-group-addon">呼出号码</div>
+			            	<input name="txtTarget" id="txtTarget" class="form-control" placeholder="请输入电话号码或坐席号" maxlength="12" onkeyup="value=value.replace(/[^\d]/g,'')" type="text">
+			        </div>
+				   </div>
+			      </div>
+			      <div class="modal-footer">
+			        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+			        <button type="button" class="btn btn-primary" onclick="return btnDial_Click();">呼叫</button>
+			      </div>
+			    </div><!-- /.modal-content -->
+			  </div><!-- /.modal-dialog -->
+			</div><!-- /.modal -->
+
+<!--弹出窗口信息显示区域-->
+<div class="modal fade bs-example-modal-lg" id="hujiaodanju_edit" data-backdrop="false" droptabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="myModalLabel">呼入弹屏</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-12 col-lg-12" style="height:auto;">
+                        <ul class="nav nav-tabs nav-justified" role="tablist">
+                            <li role="presentation" class="active"><a href="#" class="title_left">来电客户信息</a></li>
+                        </ul>
+                        <div class="white_box">
+                            <div class="form-inline" role="form">
+                                <div class="form-group">
+                                    <div class="input-group"><div class="input-group-addon">来电号码</div><input class="form-control" id="phone_num" placeholder="来电号码" size="13" readonly="readonly" type="text"></div>
+                                </div>
+                               <!--  <div class="form-group">
+                                    <div class="input-group"><div class="input-group-addon">手机号码</div><input type="text" class="form-control" id="phone_num_search" placeholder="手机号码" size="13" maxlength="12" onkeyup="value=value.replace(/[^\d]/g,'')"></div>
+                                </div> -->
+                            </div>
+                            <div class="form-inline padding-top" role="form" id="custom_info">
+                                <div class="form-group" style="width:216px;">
+                                    <div class="input-group"><div class="input-group-addon">客户姓名</div><input class="form-control" id="user_name" placeholder="会员姓名" size="13" disabled="disabled" type="text"></div>
+                                </div>
+                                <div class="form-group" style="width:120px;">
+                                    <label id="man-radio-call">性别：男</label>
+                                    <label id="weman-radio-call">性别：女</label>
+                                    <label id="sec-radio-call" style="display:none;">性别：保密</label>
+                                </div>
+                            </div>
+                            <div class="form-horizontal padding-top" role="form">
+                                <div class="input-group"><div class="input-group-addon">所在地区</div><input class="form-control" id="user_address" placeholder="所在地区" disabled="disabled" type="text"></div>
+                            </div>
+                        </div>
+                        
+                        
+                         <div class="black_box" style="display:none;">
+                         	<input id="callin_num" value="" type="hidden">
+                            <div class="form-inline" role="form">
+                                <div class="form-group">
+                                    <div class="input-group"><div class="input-group-addon">来电号码</div><input class="form-control" id="phone_num_black" placeholder="来电号码" size="13" readonly="readonly" type="text"></div>
+                                </div>
+                            </div>
+                            <div class="form-inline padding-top" role="form">
+                                <div class="form-group" style="width:216px;">
+                                    <div class="input-group"><div class="input-group-addon">客户姓名</div><input class="form-control" id="save_user_name" placeholder="会员姓名" size="13" type="text"></div>
+                                </div>
+                            </div>
+                            <div class="form-inline padding-top" role="form">
+                                <div class="form-group" style="width:216px;">
+                                    <div class="input-group"><div class="input-group-addon">性别</div>
+	                                    <div class="form-group" style="width:120px;">
+		                                    <label class="radio-inline">
+												<input name="sex" value="1" checked="checked" type="radio"> 男
+											</label>
+											<label class="radio-inline">
+												<input name="sex" value="2" type="radio"> 女
+											</label>
+	                                	</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- <div class="form-horizontal padding-top" role="form">
+                                <div class="input-group"><div class="input-group-addon">所在地区</div>
+                                	<select class="form-control" name="province" id="saveProvince" style="width:100px;">
+									</select>
+                                	<select class="form-control" name="city" id="saveCity" style="width:150px;">
+									</select>
+                                </div>
+                            </div> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+            	<input name="btnOffHookOnModal" class="call_button yingda" id="btnOffHookOnModal" onclick="return btnOffHook_Click();" value="摘机" type="button">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">关闭</button>
+                <button id="saveCustomData" type="button" class="btn btn-success" data-dismiss="modal">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--弹出窗口信息显示区域结束-->
+</header>
+		<!--header-->
+		<div class="box-shadow container">
+			<!--tool-->
+			<style>
+			.hx-modal-content {
+				background-color: #fff;
+				border: 1px solid rgba(0, 0, 0, 0.2);
+				border: 1px solid #787878\9;
+				border-radius: 6px;
+				outline: 0;
+				box-shadow: 0 3px 9px rgba(0, 0, 0, 0.5);
+				background-clip: padding-box;
+				overflow: hidden;
+				z-index: 1000;
+			}
+			.hx-modal-body {
+				position: relative;
+				height: 300px;
+			}
+			.hidden {
+				display: none!important;
+				visibility: hidden!important;
+			}
+			#vertical-ticker {
+				position: absolute;
+				bottom: 0;
+				top: 0;
+				overflow: hidden;
+				margin: 0;
+				padding: 0;
+				list-style: none;
+				min-height: 300px;
+			}
+			#vertical-ticker li {
+				padding: 5px 20px;
+				display: block;
+				color: #333;
+				text-align: left;
+				font-size: 14px;
+				height: 30px;
+				line-height: 20px;
+				font-weight: bold;
+				font-family: Helvetica Neue, times, serif;
+			}
+		</style>
+		<script>
+			$(function(){
+				$("#custom_phone_a").click(function(){
+					$("iframe").attr("src", '/callin/index');
+				});
+				
+				$("#showMyRecord").click(function(){
+					$("#myRecord").removeClass('hidden');
+				});
+				
+				$("#closeRecord").click(function(){
+					$("#myRecord").addClass('hidden');
+				});
+			});
+		
+		</script>
+		<div class="hx-modal-content" id="myRecord" style="width: 400px;height: 300px;position: absolute;right:20px; z-index:9999;">
+			<div class="modal-header">
+				<button type="button" id="closeRecord" class="close closeModal" data-dismiss="modal" aria-hidden="true">
+					×
+				</button>
+				<h4 class="modal-title" id="myModalLabel">
+               		操作记录信息
+            </h4>
+			</div>
+			<div class="hx-modal-body">
+				<div id="TextAreaSystemInfo" name="txtSystemInfo" class="form-control" style="overflow: auto;"></div>
+			</div>
+		</div>
+<section id="main">
+    <div class="row">
+        <div class="toolbar col-sm-12 open">
+            <div aria-expanded="true" class="user pull-left dropdown-toggle" data-toggle="dropdown">
+                <div class="avatar"><img src="icon_files/avatar1.png"></div>
+                <span>陈小文</span>
+            </div>
+            <ul class="dropdown-menu">
+                <li><a href="#">修改密码</a></li>
+                <li class="line"></li>
+                <li><a href="http://10.0.12.221:8083/Login/exitLogin" id="outlogin">退出登入</a></li>
+            </ul>
+            <div class="pull-left">
+                <ul class="breadcrumb">
+                    <li><a href="http://10.0.12.221:8083/Index/index">首页</a></li>
+                    <li><a href="#">欢迎页</a></li>
+                </ul>
+            </div>
+            
+            <div class="calls-info pull-left">
+                <div class="calls-nmae pull-left">
+                	<font id="custom"></font> 
+				<a href="javascript:void;" id="custom_phone_a"><font id="custom_phone" class="calls-tel"></font></a>
+                </div>
+                <div class="calls-address pull-left">
+                	<font id="custom_address"></font>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+			<!--tool-->
+			<div class="row">
+				<!--nav-->
+				
+<nav class="col-xs-12 col-sm-2 col-lg-2" id="navigation">
+	<div class="sidebar main-left-col height-no" id="sidebar" style="height: 30px; min-height: 122px; min-width: 150px; overflow-y: auto; overflow-x: hidden;">
+		<ul class="nav nav-list side-nav">
+                                                <li>
+                    <a class="dropdown-toggle collapsed" data-toggle="collapse" data-target="#mall0-dropdown" href="javascript:void(0)" aria-expanded="false" lang="/callin/index">
+                    <i class="icon-shopping-cart"></i>
+                    <span class="menu-text"> 来电接起 </span><b class="caret"></b>
+                    </a>
+                        <ul id="mall0-dropdown" class="submenu" style="display:none;">
+                                                             <li id="line2"><a href="http://10.0.12.221:8083/callin/consult" style="text-align:left; text-indent:15px;">咨询</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/callin/suggest" style="text-align:left; text-indent:15px;">建议</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/callin/complain" style="text-align:left; text-indent:15px;">投诉</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/callin/shopOrderList" style="text-align:left; text-indent:15px;">订单查询</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/callin/itemList" style="text-align:left; text-indent:15px;">商品查询</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/callin/accountService" style="text-align:left; text-indent:15px;">账户服务</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/callin/changeItem" style="text-align:left; text-indent:15px;">退/换货</a></li>                        </ul>
+                    </li>                 
+                                    <li>
+                    <a class="dropdown-toggle collapsed" data-toggle="collapse" data-target="#mall1-dropdown" href="javascript:void(0)" aria-expanded="false" lang="knowledgebase">
+                    <i class="icon-info-sign"></i>
+                    <span class="menu-text"> 知识库 </span><b class="caret"></b>
+                    </a>
+                        <ul id="mall1-dropdown" class="submenu" style="display:none;">
+                                                             <li id="line2"><a href="http://10.0.12.221:8083/KnowledgeBase/addKnowledgeManage" style="text-align:left; text-indent:15px;">管理添加</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/KnowledgeBase/listKnowledgeManage" style="text-align:left; text-indent:15px;">管理列表</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/KnowledgeBase/addKnowledgeType" style="text-align:left; text-indent:15px;">类型添加</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/KnowledgeBase/listKnowledgeType" style="text-align:left; text-indent:15px;">类型列表</a></li>                        </ul>
+                    </li>                 
+                                    <li>
+                    <a class="dropdown-toggle collapsed" data-toggle="collapse" data-target="#mall2-dropdown" href="javascript:void(0)" aria-expanded="false" lang="suggesttype">
+                    <i class="icon-sitemap"></i>
+                    <span class="menu-text"> 字典管理 </span><b class="caret"></b>
+                    </a>
+                        <ul id="mall2-dropdown" class="submenu" style="display:none;">
+                                                             <li id="line2"><a href="http://10.0.12.221:8083/SuggestType/addComplain" style="text-align:left; text-indent:15px;">投诉类型添加</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/SuggestType/listComplain" style="text-align:left; text-indent:15px;">投诉类型列表</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/SuggestType/addSuggest" style="text-align:left; text-indent:15px;">建议类型添加</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/SuggestType/listSuggest" style="text-align:left; text-indent:15px;">建议类型列表</a></li>                        </ul>
+                    </li>                 
+                                    <li>
+                    <a class="dropdown-toggle collapsed" data-toggle="collapse" data-target="#mall3-dropdown" href="javascript:void(0)" aria-expanded="false" lang="servicesaccount">
+                    <i class="icon-signal"></i>
+                    <span class="menu-text"> 帐号管理 </span><b class="caret"></b>
+                    </a>
+                        <ul id="mall3-dropdown" class="submenu" style="display:none;">
+                                                             <li id="line2"><a href="http://10.0.12.221:8083/ServicesAccount/listUser" style="text-align:left; text-indent:15px;">讯鸟帐号列表</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/ServicesAccount/addUser" style="text-align:left; text-indent:15px;">讯鸟帐号绑定</a></li>                        </ul>
+                    </li>                 
+                                    <li>
+                    <a class="dropdown-toggle collapsed" data-toggle="collapse" data-target="#mall4-dropdown" href="javascript:void(0)" aria-expanded="false" lang="order">
+                    <i class="icon-group"></i>
+                    <span class="menu-text"> 订单管理 </span><b class="caret"></b>
+                    </a>
+                        <ul id="mall4-dropdown" class="submenu" style="display:none;">
+                                                             <li id="line2"><a href="http://10.0.12.221:8083/Order/refundOrderForServer" style="text-align:left; text-indent:15px;">订单列表</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/Order/checkOrderList" style="text-align:left; text-indent:15px;">任务领取列表</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/Order/myClaimRefundOrder" style="text-align:left; text-indent:15px;">我的任务</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/Order/refundOrderForManager" style="text-align:left; text-indent:15px;">主管审核列表</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/Collection/collectionOrderList" style="text-align:left; text-indent:15px;">上门收款订单</a></li>                        </ul>
+                    </li>                 
+                                    <li>
+                    <a class="dropdown-toggle collapsed" data-toggle="collapse" data-target="#mall5-dropdown" href="javascript:void(0)" aria-expanded="false" lang="member">
+                    <i class="icon-cogs"></i>
+                    <span class="menu-text"> 会员管理 </span><b class="caret"></b>
+                    </a>
+                        <ul id="mall5-dropdown" class="submenu" style="display:none;">
+                                                             <li id="line2"><a href="http://10.0.12.221:8083/Member/listMember" style="text-align:left; text-indent:15px;">会员列表</a></li>                        </ul>
+                    </li>                 
+                                    <li>
+                    <a class="dropdown-toggle collapsed" data-toggle="collapse" data-target="#mall6-dropdown" href="javascript:void(0)" aria-expanded="false" lang="consult">
+                    <i class="icon-shopping-cart"></i>
+                    <span class="menu-text"> 咨询管理 </span><b class="caret"></b>
+                    </a>
+                        <ul id="mall6-dropdown" class="submenu" style="display:none;">
+                                                             <li id="line2"><a href="http://10.0.12.221:8083/Consult/listConsultForServer" style="text-align:left; text-indent:15px;">咨询列表</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/Consult/listConsultForManager" style="text-align:left; text-indent:15px;">咨询列表</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/Consult/myclaimconsult" style="text-align:left; text-indent:15px;">我的咨询</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/Consult/dellistconsult" style="text-align:left; text-indent:15px;">咨询回收箱</a></li>                        </ul>
+                    </li>                 
+                                    <li>
+                    <a class="dropdown-toggle collapsed" data-toggle="collapse" data-target="#mall7-dropdown" href="javascript:void(0)" aria-expanded="false" lang="comment">
+                    <i class="icon-info-sign"></i>
+                    <span class="menu-text"> 评论管理 </span><b class="caret"></b>
+                    </a>
+                        <ul id="mall7-dropdown" class="submenu" style="display:none;">
+                                                             <li id="line2"><a href="http://10.0.12.221:8083/Comment/listCommentForServer" style="text-align:left; text-indent:15px;">评论列表</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/Comment/listCommentForManager" style="text-align:left; text-indent:15px;">评论列表</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/Comment/myClaimComment" style="text-align:left; text-indent:15px;">我的评论</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/Comment/delStatusComment" style="text-align:left; text-indent:15px;">评论回收箱</a></li>                        </ul>
+                    </li>                 
+                                    <li>
+                    <a class="dropdown-toggle collapsed" data-toggle="collapse" data-target="#mall8-dropdown" href="javascript:void(0)" aria-expanded="false" lang="workordermanage">
+                    <i class="icon-sitemap"></i>
+                    <span class="menu-text"> 工单管理 </span><b class="caret"></b>
+                    </a>
+                        <ul id="mall8-dropdown" class="submenu" style="display:none;">
+                                                             <li id="line2"><a href="http://10.0.12.221:8083/WorkOrderManage/listWorkOrder" style="text-align:left; text-indent:15px;">工单列表</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/WorkOrderManage/serviceListWorkOrder" style="text-align:left; text-indent:15px;">客服工单列表</a></li>                        </ul>
+                    </li>                                    <li>
+                    <a class="dropdown-toggle collapsed" data-toggle="collapse" data-target="#mall9-dropdown" href="javascript:void(0)" aria-expanded="false" lang="/appsuggest/index">
+                    <i class="icon-signal"></i>
+                    <span class="menu-text"> 意见反馈 </span><b class="caret"></b>
+                    </a>
+                        <ul id="mall9-dropdown" class="submenu" style="display:none;">
+                                                             <li id="line2"><a href="http://10.0.12.221:8083/AppSuggest/index" style="text-align:left; text-indent:15px;">意见反馈</a></li>                        </ul>
+                    </li>                 
+                                    <li>
+                    <a class="dropdown-toggle collapsed" data-toggle="collapse" data-target="#mall10-dropdown" href="javascript:void(0)" aria-expanded="false" lang="menu">
+                    <i class="icon-group"></i>
+                    <span class="menu-text"> 菜单管理 </span><b class="caret"></b>
+                    </a>
+                        <ul id="mall10-dropdown" class="submenu" style="display:none;">
+                                                             <li id="line2"><a href="http://10.0.12.221:8083/Menu/addMenu" style="text-align:left; text-indent:15px;">菜单添加</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/Menu/listMenu" style="text-align:left; text-indent:15px;">菜单列表</a></li>                        </ul>
+                    </li>                 
+                                    <li>
+                    <a class="dropdown-toggle collapsed" data-toggle="collapse" data-target="#mall11-dropdown" href="javascript:void(0)" aria-expanded="false" lang="user">
+                    <i class="icon-cogs"></i>
+                    <span class="menu-text"> 日志管理 </span><b class="caret"></b>
+                    </a>
+                        <ul id="mall11-dropdown" class="submenu" style="display:none;">
+                                                             <li id="line2"><a href="http://10.0.12.221:8083/User/listlogs" style="text-align:left; text-indent:15px;">日志列表</a></li>                        </ul>
+                    </li>                 
+                                    <li>
+                    <a class="dropdown-toggle collapsed" data-toggle="collapse" data-target="#mall12-dropdown" href="javascript:void(0)" aria-expanded="false" lang="report">
+                    <i class="icon-shopping-cart"></i>
+                    <span class="menu-text"> 报表统计 </span><b class="caret"></b>
+                    </a>
+                        <ul id="mall12-dropdown" class="submenu" style="display:none;">
+                                                             <li id="line2"><a href="http://10.0.12.221:8083/Report/callInReport" style="text-align:left; text-indent:15px;">呼入统计</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/Report/callOutReport" style="text-align:left; text-indent:15px;">呼出统计</a></li>                        </ul>
+                    </li>                                    <li>
+                    <a class="dropdown-toggle collapsed" data-toggle="collapse" data-target="#mall13-dropdown" href="javascript:void(0)" aria-expanded="false" lang="">
+                    <i class="icon-info-sign"></i>
+                    <span class="menu-text"> 呼叫查询 </span><b class="caret"></b>
+                    </a>
+                        <ul id="mall13-dropdown" class="submenu" style="display:none;">
+                                                             <li id="line2"><a href="http://10.0.12.221:8083/Report/callinQuery" style="text-align:left; text-indent:15px;">来电查询</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/Report/callmissQuery" style="text-align:left; text-indent:15px;">呼损查询</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/Report/myLossLog" style="text-align:left; text-indent:15px;">我的呼损</a></li>                                <li id="line2"><a href="http://10.0.12.221:8083/Report/calloutQuery" style="text-align:left; text-indent:15px;">呼出查询</a></li>                        </ul>
+                    </li>        </ul>
+    </div>        
+
+		<script src="icon_files/ace-elements.js"></script>
+		<script src="icon_files/ace.js"></script>
+</nav>
+				<!--nav-->
+				<!--index-->
+				<section class="col-xs-12 col-sm-10 col-lg-10 main-right" style="overflow: hidden; float: right;">
+					<iframe src="" id="iframepage" name="iframepage" scrolling="no" style="border: 0px none; height: 30px;" frameborder="0" height="auto" width="100%"> </iframe>
+				</section>
+			</div>
+			<!--row-->
+		</div>
+		<!--box-shadow-->
+		<!--footer-->
+		<footer class="container" style="padding:0;">
+    <ul class="col-lg-6 pull-left">
+        <li><a href="#">恒信电子商务</a></li>
+      </ul>
+    <span class="col-lg-6 pull-right"> copyright@2014 hxqc.com </span> 
+</footer>
+<div class="modal" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog" style="margin:150px auto;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h5 class="modal-title" id="myModalLabel">标题</h5>
+            </div>
+            <div class="modal-body" style="font-size:18px; text-align:center;">提交成功</div>
+            <div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">关闭</button></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="myModa2" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog" style="margin:150px auto;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h5 class="modal-title" id="myModalLabel">标题</h5>
+            </div>
+            <div class="modal-body" style="font-size:18px; text-align:center;">提交成功<span id="lastNum"></span></div>
+            <div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">关闭</button></div>
+        </div>
+    </div>
+</div>
+		<!--footer-->
+		<!-- InstanceBeginEditable name="popup " -->
+		<!--popup-->
+		<!--popup-->
+		<!-- InstanceEndEditable -->
+		<!-- InstanceBeginEditable name="js " -->
+		<div id="waitingDialog" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-sm">
+				<div class="alert alert-success" role="alert">
+					<img src="icon_files/loading9.gif"> 数据处理中...
+				</div>
+			</div>
+		</div>
+		<!-- InstanceEndEditable -->
+	
+	
+	<script>
+		$(".submenu a,.welcome a").on('click', function() {
+		//	$("#waitingDialog").show().modal();
+			/*$(".breadcrumb").children("li:eq(1)").html('123');*/
+			var s = $(this).attr("href");
+			$(this).parent().parent().parent().parent().find("li ul li a").removeClass('defaultmenu');
+			$(this).addClass('defaultmenu');
+			if (s.substr(0, 1) != '/') {
+				s = '/' + s;
+			}
+			$("iframe").attr("src", '' + s);
+			return false;
+		});
+		$(function() {
+			
+			//var winH = $(window).height();alert(winH);
+			/**记住菜单状态**/
+			$('.memorymenu').find('a.dropdown-toggle').click(function() {
+				var url = $(this).attr('lang');
+				var cl = $(this).parent().find('ul').attr('class');
+				var status = 0;
+				if (cl.indexOf('in') > 0) {
+					status = 1;
+				}
+				$.ajax({
+					type: "POST",
+					url: "/Index/memoryMenu",
+					data: "controller=" + url + "&status=" + status,
+					dataType: "json",
+					success: function(msg) {}
+				});
+			});
+		});
+	</script>
+<!--<script src="/default/js/alert.js"></script>-->
+</body><!-- InstanceEnd --></html>

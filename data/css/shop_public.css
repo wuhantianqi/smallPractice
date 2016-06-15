@@ -1,0 +1,55 @@
+.sj_img,.sj_add{width:100%;padding: 5px;}
+.sj_map{width:750px;border: 1px solid #dddddd;height: 400px;margin-top:10px;}
+.sj_map_ps{color: #bbbbbb;line-height: 18px;margin-top:10px;}
+.sj_img ul{margin: 0px;padding: 0px;list-style-type: none;}
+.sj_img ul li{width:120px;height:125px;float: left;text-align: center;line-height: 25px;margin-right:8px;margin-bottom:8px;}
+.sj_img ul li .sj_images{width:120px;height:100px;float: left;border: 1px solid #dddddd;}
+.sj_img ul li .sj_images img{width:100%;height: 100%;}
+fieldset input,fieldset  select{width: 300px;}
+#dropzone {width:80%;}
+#dropzone p{margin-left: 20px;}
+/*表单部分宽度样式*/
+.control-label{font-weight: bold;}
+.formtit8{width:80px;line-height: 28px;}
+.formtit11{width:110px;line-height: 28px;}
+.table_form1{width:100px;line-height: 28px;}
+.table_form1_5{width:150px;line-height: 28px;}
+select.table_form1_5{width:150px;line-height: 26px;}
+.table_form2{width:200px;line-height: 28px;}
+select.table_form2{width:200px;line-height: 26px;}
+input.table_form2{padding:6px;}
+.table_form3{width:300px;line-height: 28px;}
+.table_form3_5{width:350px;line-height: 28px;}
+
+.table_form4{width:400px;line-height: 28px;}
+.table_form5{width:500px;line-height: 28px;}
+.table_form5_5{width:550px;line-height: 28px;}
+.table_form6{width:600px;line-height: 28px;}
+.table_form7{width:700px;line-height: 28px;}
+.table_form100{width:100%;line-height: 28px;}
+
+.input-group{margin: 0 10px 10px 0;}
+.input-group-addon{padding: 0px 8px;height:32px;text-align: left}
+select.form-control,input.form-control{margin: 0px;height:32px;}
+textarea{resize:none;}
+.form-group{margin-bottom:8px;}
+.form-group200{width:200px;}
+.form-group260{width:260px;}
+.form-group300{width:300px;}
+.form-group400{width:400px;}
+.form-group500{width:500px;}
+.opacity0{opacity: 0;}
+
+.input_css{height:22px;width:140px;margin-left:0px;}
+.hr100{width:100%;height:8px;overflow: hidden}
+/*.small-scroll{width: 100%;overflow: hidden;overflow-y:auto}*/
+.border_213{border: 1px solid rgb(213, 213, 213);}
+.padding_5{padding: 5px;}
+.box-buzhou{margin: 10px;}
+.dianpu{border:1px solid #dddddd;padding:15px 10px 10px 25px;font-size:14px;font-weight:bold;padding-top:0px;margin-left:20px;}
+.dianpu h2{font-size: 16px;font-weight: bold;border-bottom: 1px solid #dddddd;padding: 0 10px 10px 10px;}
+.buzhou{border: 1px dotted #1c1c1c;padding: 0 10px;width:31%;float: left;margin-right:2%;height: 280px;}
+.buzhou:first-child{margin-left:1%;}
+.buzhou h3{font-size: 14px;font-weight: bold}
+.buzhou p{font-size:12px;font-weight: normal}
+.tanchu{position: fixed;top:10%;left:10%;background-color: #ffffff;}

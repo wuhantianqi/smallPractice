@@ -1,0 +1,381 @@
+⑩HTTP协议
+		HTTP协议重要性：无论是以后用webserverice,还是用rest做大型架构,都离不开对http协议的认识
+		甚至可以简化的说：
+			webservice = http协议+XML
+			rest = http协议 + json
+			各种 API 一般也是用http+xml/json来实现的
+			做采集,小偷程序也需要对http协议有所了解,以及ajax,对http协议有了解之后，学习起来也会非常容易理解
+		什么是协议：
+			计算机中的协议和现实中的协议是一样的，一式双份/多份，双方/多方共同遵从一个规范，就可称为协议
+			常见协议： ftp  http  stmp pop tcp/ip协议等等 
+		HTTP请求信息和响应信息的格式
+			请求：
+				1.请求行
+					请求方法    (GET POST PUT DELETE TRACE OPTIONS)
+					请求路径
+					所用的协议
+				2.请求头信息
+				3.请求主体信息
+
+			用win7自带的telnet客户端请求的最基本http协议请求
+				GET /shop/http/index.php HTTP/1.1           请求行
+				Host: localhost                             请求头信息  
+
+				HTTP/1.1 200 OK                             响应行
+				Date: Fri, 03 Jun 2016 13:30:36 GMT         响应头信息(以下到空格都是响应头信息,可以有一到N条)
+				Server: Apache/2.2.21 (Win32) PHP/5.3.10    	服务器信息
+				X-Powered-By: PHP/5.3.10                    	响应程序
+				Content-Length: 5                           	返回主体的长度  
+				Content-Type: text/html                     	返回的格式(http格式)
+
+				hello                                       返回的主体信息
+
+			请求信息   GET方法
+				1.请求行
+					GET就是请求方法(method)
+					/shop/http/index.php请求的资源路径
+					HTTP/1.1请求所用的协议
+				2.请求头信息
+					请求的服务器
+				3.注意：头信息结束后，必须空一行，头信息和主体信息必须有这个空行做区分
+					即使没有主体信息，空行也不能少
+			响应信息
+				1.响应行
+					HTTP/1.1      协议版本 
+					200 		  状态码
+					OK 			  状态文字
+				2.响应头信息
+					响应头是以  key:value 形式展现的
+				3.空格
+				4.返回的主体信息	
+			总结对比图
+
+			请求信息                                                 响应头信息
+				请求行(请求方法 路径 协议)								响应行(协议 状态码 状态文字)
+				头信息(格式为 key:value)								响应头信息(格式为 key:value)
+				空行													空行
+				主体信息(可选,发送内容)									主体信息(也可能没有)				
+
+				例：                                                    例：
+				POST /shop/index.php HTTP/1.1                           HTTP/1.1 200 OK
+				Host: localhost                                         Content-type: text/html
+				Content-type: application/x-www-form-urlencode          Content-length: 5
+				Cotent-length: 5                                         
+                                                                        hello 
+				age=3
+
+				请求方法有哪些？
+					GET POST HEAD PUT TRACE DELETE OPTIONS...
+					GET和POST是最常用的请求方法，其它的请求方法虽然http协议规定里面有，但是web server未必允许或支持这些方法
+					HEAD：和GET基本一致，只是返回状态信息，并不返回主体内容，比如我们要确定一个内容(比如网上的一个图片)是否正常，或者一个网页是否能正常请求，而不需要返回具体内容就可以用head
+					例： 
+						telnet www.zixue.it 80
+						HEAD / HTTP/1.1
+						Host: www.zixue.it
+
+						HTTP/1.1 200 OK
+						...
+					TRACE(很多网站都屏蔽了): 是你用了代理上网，比如用代理访问了www.baidu.com,你想看看代理有没有修改你的http请求，可以用TRACE来测试一下，www.baidu.com的服务器就会把最后收到的请求返回
+					OPTIONS(很多网站连这个都屏蔽了): 返回服务器可用的请求方法(相当于探嗅服务器)
+					这些只能用本机的localhost作下实验，实际生产环境，很多服务器都把这些方法屏蔽了
+
+				返回信息
+					状态码，状态文字
+						状态码是用来反应服务器响应情况的，最常见的如：200 OK, 404 NOT FOUND
+						状态文字是用来描述状态码，便于人观察的
+						如图
+						状态码                定义                 说明
+						1xx                   信息                 接收到请求，继续处理
+						2xx                   成功                 操作成功地收到，理解和接受
+						3xx                   重定向               为了完成请求，必须采取进一步措施
+						4xx                   客户端错误           请求的语法有错误或不能完全被满足
+						5xx                   服务端错误           服务器无法完成明显有效的请求
+						常见状态码
+							200        			服务器成功返回网页
+							301/302    			永久/临时重定向
+							307                 重定向后还保持原有的请求数据
+								// header('Location: http://www.baidu.com');      //默认是302重定向
+								header('Location: http://www.baidu.com',true,301);      //指定301重定向，true意指用301信息替换原来的头信息
+								302转向可能会有URL规范化及网址劫持的问题。可能被搜索引擎判为可疑转向，甚至认为是作弊。
+								当网页A用301重定向转到网页B时，搜索引擎可以肯定网页A永久的改变位置，或者说实际上不存在了，搜索引擎就会把网页B当作唯一有效目标。
+
+								注意：当用重定向的时候会丢失原有的信息，如果用的post表单提交到1.php,然后1.php又重定向到2.php，如果想要2.php接收到之前的post表单内容,可以用307
+								header('Location: http://www.baidu.com',true,307);
+							304  Not MODIFIED   未修改 
+								这个原理很重要，基本流程是当第二次客户端去请求网页的时候会把之前的内容，比如网页，图片或视频等信息带二个字段过去(
+								If-Modified-Since  Fri, 03 Jun 2016 16:03:28 GMT           上次修改的时间
+								If-None-Match	"10871ad140-9d4-53461dd033400")            上次请求的唯一标识符
+								客户端会带着这二个信息去服务器端进行比较。如果其中有任何一个改变了。就证明请求的内容有变动，服务器端就会重新返回请求内容。如果没有变动，服务器就不会返回内容。而是告诉浏览器去自己的缓存里面找内容,这样就减轻了服务器压力,但是这种的话，顶多过半个小时，缓存就失效了，所以对于一个网站。如果不常作修改的文章和图片，就可以设置成半个月或者一个月的缓存
+							404                 请求的网页不存在
+							503                 服务器暂时不可用
+							500                 服务器内部错误 
+		HTTP协议之referer防盗链
+			有时候我们引用其它网站的图片时，会失效，但是在它本身网站却能正常显示。服务器是如何知道图片是站外引用，还是站内引用的
+			这时候就牵扯到了http协议里的referer选项
+			还有一些第三方的网站统计工具，统计用户的来源等
+			还有采集别人网站信息的时候也要伪造这个referer
+			这就用到了http协议中：头信息里有个referer 
+			referer: 代表网页的来源，既上一个页面的地址，如果是直接在浏览器上输入地址进来的，则没有refere头
+			这也是，为什么服务器知道我们的图片是哪引用的，也知道我们的客户是从哪个网站链接过来的  
+			那么： 如何配置apache服务器，用于图片防盗链
+			原理： 在web服务器层面，根据http协议的refere头信息，来判断，如果来自站外，则统一重写到一个很小的防盗链提醒图片上去。
+			其实就是配置url重定向
+			具体步骤：
+				1.打开apache重写模块  mod_rewrite
+					LoadModule rewrite_module modules/mod_rewrite.so
+					并重启 apache
+				2.在需要防盗链的网站或目录定.htaccess文件，并指定防盗链规则
+				3.如何指定防盗链。自然是先分析refere信息，如不是本店地址则重写
+					重写规则： 哪种情况要重写
+						<1> 当访问的后缀名是jpeg/jpg/gif/png图片时
+						<2> 当refere头信息没有localhost本地网址时
+						    满足两种规则就重写
+					怎么重写
+						可以统一 rewirte到某个防盗链图片
+					如下例：
+						#打开重写规则
+						RewriteEngine on
+						#指定生效的目录[可选],一般是针对当前目录生效，如果放在根目录是对所有目录生效，这时候就可以指定
+						RewriteBase /shop/http
+						#重写的判断条件  %{REQUEST_FILENAME}apache的常量，代表访问的文件名  代表匹配任何文件后缀是图片格式的  [NC] 不区分大小写 
+						RewriteCond %{REQUEST_FILENAME} .*\.(jpg|jpeg|gif|png) [NC] 
+						#添加第二条规则，如果不是来自127.0.0.1服务器
+						RewriteCond %{HTTP_REFERER} !127.0.0.1 [NC]
+						#重写规则 将所有图片请求地址重定向到火狐随边搜的一张图片上
+						RewriteRule .*  https://www.baidu.com/img/baidu_jgylogo3.gif
+		http缓存详解: 如何缓存图片或css
+			图片请求的304
+				我们观察图片的下载
+					第一次请求时  200  OK
+					第二次请求时  304  Not Modified 未修改状态
+					解释：在网络上，有一些缓存服务器，另外浏览器自身也有缓存功能，当我们第一次浏览某个图片时，正常下载图片，返回值 200
+					基于一个前提---图片一般不会经常改动，服务器在返回 200 的同时，还会返回该图片的“签名”，Etag (签名可以理解为图片的“指纹”)
+					当浏览器再次访问该图片时，会去服务器校验该"指纹"，如果图片没有变化，直接使用缓存中的图片，这样就减轻了服务器的负担
+				抓包观察
+					第一次请求头：
+						Accept	image/png,image/*;q=0.8,*/*;q=0.5
+						Accept-Encoding	gzip, deflate
+						Accept-Language	zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3
+						Connection	keep-alive
+						Host	127.0.0.1
+						Referer	http://127.0.0.1/shop/http/index.html
+						User-Agent	Mozilla/5.0 (Windows NT 6.1; rv:46.0) Gecko/20100101 Firefox/46.0
+					第一次响应头:
+						Accept-Ranges	bytes
+						Connection	Keep-Alive
+						Content-Length	2516
+						Content-Type	image/jpeg
+						Date	Fri, 10 Jun 2016 10:42:46 GMT
+
+						*	Etag	"10871ad140-9d4-53461dd033400"
+
+						Keep-Alive	timeout=5, max=99
+
+						*	Last-Modified	Fri, 03 Jun 2016 16:03:28 GMT
+
+						Server	Apache/2.2.21 (Win32) PHP/5.3.10
+					第二次请求：
+						Accept	image/png,image/*;q=0.8,*/*;q=0.5
+						Accept-Encoding	gzip, deflate
+						Accept-Language	zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3
+						Cache-Control	max-age=0
+						Connection	keep-alive
+						Host	127.0.0.1
+
+						*	If-Modified-Since	Fri, 03 Jun 2016 16:03:28 GMT
+						*	If-None-Match	"10871ad140-9d4-53461dd033400"
+
+						Referer	http://127.0.0.1/shop/http/index.html
+						User-Agent	Mozilla/5.0 (Windows NT 6.1; rv:46.0) Gecko/20100101 Firefox/46.0
+					这两行的意思是：
+						如果自：Fri, 03 Jun 2016 16:03:28 GMT这个时间点以后，图片修改过，则重新请求
+						如果该图片最新的Etag的值和If-None-Match的值不匹配，则重新请求，满足其中一条就会重新请求
+					第二次响应：
+						Status Code: 304 Not Modified     
+						如果是304，就意味着浏览器从本地取缓存，节省了图片在网络上传输的时间和服务器的压力
+				大型网站缓存机制
+					如果网站比较大,有N台缓存服务器，那么这N台缓存服务器是如何处理主服务器上的文件的
+					1.要不要缓存
+					2.缓存多久
+					要回答这两个问题----说明缓存服务器与主服务器之间，应该有一些协议来说明这两个问题
+					用什么协议。还是http协议，用头信息里面的cache-control来控制
+					具体用法：
+						在主服务器打开apache的expires扩展，利用该扩展来控制图片还有css和html等文件是否缓存及缓存的生命周期,这种是多台服务器有代理服务器(也就是缓存服务器的时候才能真正发挥它的作用)
+
+						1.LoadModule expires_module modules/mod_expires.so          //打开这个模块,记得要重启apache
+						2.在相关目录新建
+						    <1>	新建 .htaccess  		并添加如下内容
+						    <2> ExpiresActive On        打开缓存配置
+						    	apache手册的示例
+						    	ExpiresDefault "<base> [plus] {<num> <type>}*"                  设置默认的缓存参数               
+						    	ExpiresByType type/encoding "<base> [plus] {<num> <type>}*"     按照文件类型来设置独特的缓存参数
+						    	以ExpiresByType参数为例：
+						    		1.文件类型
+						    		2.Base:基于哪个时间点来计算缓存有效期
+						    			<1>Access/now: 基于请求响应的那一瞬间，比如从请求的瞬间到一个月之后
+						    			<2>Modification: 基于被请求文件的最后修改日期来计算，比如,最后修改日期的后一周内仍然有效
+						    			<3>可选参数 plus 修饰后面时间用的
+						    			<4>缓存时间的大小   （30）
+						    			<5>缓存时间的单位    （天）
+						    	示例：用第二种方法来做测试，给jpg图片设置1个月的生存周期
+						    		ExpiresActive On
+						    		ExpiresByType image/jpeg "access plus 30 days"
+						    	开启缓存后服务器返回的信息
+						    		Accept-Ranges	bytes
+						    		Cache-Control	max-age=2592000
+						    		Connection	Keep-Alive
+						    		Content-Length	2516
+						    		Content-Type	image/jpeg
+
+						    		*	Date	Fri, 10 Jun 2016 14:18:41 GMT    当前请求的时间
+
+						    		Etag	"10871ad140-9d4-53461dd033400"
+
+						    		*	Expires	Sun, 10 Jul 2016 14:18:41 GMT    过期时间，跟上面的时间相减正好是一个月
+
+						    		Keep-Alive	timeout=5, max=99
+						    		Last-Modified	Fri, 03 Jun 2016 16:03:28 GMT
+						    		Server	Apache/2.2.21 (Win32) PHP/5.3.10
+						    	如上示例，如果这是在集群环境里，缓存服务器得到此信息，将会认为图片在一个月内有效，这期间就直接从缓存服务器响应用户相关图片，就不会每次都去主服务器请求。减轻了主服务器的负担
+						    既然可以设置缓存，也可以取消缓存
+						    	比如有些个人信息，不允许缓存，必须每次都去主服务器请求，我们可以设置如下选项：
+						    		Control-cache: no-store,must-revalidate;            这个设置意味着不允许缓存，必须去主服务器验证
+						    	这个功能要开启apache的另一个header模块
+						    		LoadModule headers_module modules/mod_headers.so    开启此功能模块
+						    	示例：比如设置gif图片不缓存
+							    	在相关目录下新建.htaccess文件并添加如下代码
+							    		<FilesMatch "\.(gif)$">
+							    		header set Cache-Control "no-store,must-revalidate"
+							    		</FilesMatch>
+							    	多次刷新页面可知，gif图片不会被缓存
+				http协议与内容压缩
+					打开一篇新闻，我们一般可以看到如下响应头信息
+						Age	43
+						Cache-Control	max-age=60
+
+						*	Content-Encoding	gzip
+						*	Content-Length	127030
+
+						Content-Type	text/html
+						Date	Sat, 11 Jun 2016 00:40:27 GMT
+						Expires	Sat, 11 Jun 2016 00:41:27 GMT
+						Last-Modified	Sat, 11 Jun 2016 00:39:23 GMT
+						Server	nginx
+						Vary	Accept-Encoding
+						X-Cache	HIT from ctc.gz.1cf2.42.spool.sina.com.cn
+						X-Powered-By	schi_v1.02
+					同时我们点击右键保存其源码，得到的文本文件大小是 568000，
+					之前的学习中我们知道：Content-Length代表返回的内容主体长度，但此处为什么返回的主体长度和Content-Length不一致
+					原因在于 Content-Encoding	gzip 页面压缩格式这个响应头信息在起作用
+					原理：为了提高网页在网络上的传输速度，服务器对主体信息进行了压缩。如常见的gzip压缩，deflate压缩，compress压缩以用google chrome(谷哥)正在推的sdch压缩
+					压缩过程
+							客户端                   		 服务器端
+
+						接收压缩内容		——请求信息——>
+                    	再解压
+                    	再渲染页面          <——返回压缩信息——	
+                    所以浏览器一般返回的是压缩后的主体内容长度
+                如何在apache启用压缩功能
+                	1.开启deflate模块或者gzip模块(好像任选其一)
+					2.在apache的httpd.conf配置文件里面添加如下代码
+						#GZIP压缩模块配置
+						<ifmodule mod_deflate.c>
+						#压缩级别为6(推荐级别)，可选1-9个级别
+						DeflateCompressionLevel 6       
+						#启用对特定MIME类型内容的压缩(启用过虑器)
+						SetOutputFilter DEFLATE
+						SetEnvIfNoCase Request_URI .(?:gif|jpe?g|png|exe|t?gz|zip|bz2|sit|rar|pdf|mov|avi|mp3|mp4|rm)$ no-gzip dont-vary #设置不需要压缩的文件
+						AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml application/x-httpd-php application/x-javascript #设置需要压缩的文件
+						</ifmodule>	
+						为什么要指定文件的类型进行压缩
+							因为压缩和解压缩也是要耗CPU资源的，而图片/视频等一些文件，压缩效果并不好，也压缩不了多少
+							所以一般是指定文本格式进行压缩
+				加了压缩的对比
+					原返回页面主体大小 
+						Content-Length	2505
+					加了压缩功能后返回的主体内容大小
+						Content-Encoding	gzip   (返回信息会多加了这样一个信息)
+						Content-Length	1352
+						可以看到压缩还是很可观的
+				服务器怎么知道我们的浏览器支持那种压缩格式呢？
+					因为客户端允许发送一个 Accept-Encoding 头信息。这里会注明我客户端支持那种压缩格式	
+					例： Accept-Encoding	gzip, deflate
+				小技巧：
+					当我们做采集时，可以不发送Accept-Encoding头信息，这样采集到的直接是源码，不过这样速度会慢一点，
+					当然，也可以采集gzip(提高速度)，再用php解压gzip的内容
+			comet反向ajax
+				HTTP协议与持久链接+分块传输----->就组合成了一个新的技术 反向ajax链接
+				反向ajax又叫comet,server push服务器推技术
+				应用范围：网页聊天服务器，比如新浪微博的在线聊天，谷哥邮箱的网页聊天都有用到
+
+				原理： 
+					一般而言，HTTP协议的特点：  连接 <-->  断开
+					那么具体什么时间断开？
+						我们知道客户端响应 content-length，收到指定的length长度的内容时，也就断开了
+						而在http 1.1协议中，允许我们不写content-length的具体长度值，比如我们要发送的内容长度确定不知道时。
+						这时我们需要指定一个特殊的 content-type:chunked      分块传输
+						分块传输的原理：
+							服务器端返回
+								123H\r\n
+								123H个长度的内容传输给客户端\r\n
+								......
+								41H\r\n
+								浏览器继续接收41H长度的内容\r\n
+								0\r\n(直到服务器返回0,这时候才代表服务器内容发送完毕)
+					利用这个特点。我们可以做一个不断开的链接，不断从服务器返回信息,这样就实现了一个既时聊天的功能
+					简单示例：
+						//反向ajax链接，应用于聊天室功能,这才是真正的聊天室实现原理
+						set_time_limit(0);            //设置链接不会超时
+						// ob_start();         //打开缓冲区
+						$pad=str_repeat(" ",4070);    //重复4069个空格。php.ini output_buffering默认是4069字符或者更大，即输出内容必须达到4069字符服务器才会flush刷新输出缓冲
+						echo $pad."<br/>";
+						//ob_flush()和flush()的区别。前者是把数据从PHP的缓冲中释放出来,后者是把不在缓冲中的或者说是被释放出来的数据发送到浏览器。所以当缓冲存在的时候，我们必须ob_flush()和flush()同时使用。
+						ob_flush();
+						flush();
+						//ob_end_flush();			//这个函数将送出最顶层缓冲区的内容（如果里边有内容的话），并关闭缓冲区。如果想进一步处理缓冲区中的内容，必须在ob_end_flush()之前调用 ob_get_contents()，因为在调用ob_end_flush()后缓冲区内容被丢弃。
+						$i=1;
+						while($i++){
+							echo $pad."<br/>";
+							echo $i."<br/>";
+							ob_flush();
+							flush();
+							sleep(1);      //怕客户端吃不消，1秒执行一次
+						}
+					服务器返回的信息
+						Connection	Keep-Alive
+						Content-Encoding	gzip
+						Content-Type	text/html
+						Date	Sat, 11 Jun 2016 03:23:01 GMT
+						Keep-Alive	timeout=5, max=100
+						Server	Apache/2.2.21 (Win32) PHP/5.3.10
+
+						*	Transfer-Encoding	chunked      返回的信息会多了这个选项，意思是服务器返回的信息是分割成小块传输的,这时候客户端和服务器之间是没有断开链接的
+
+						Vary	Accept-Encoding
+						X-Powered-By	PHP/5.3.10
+					思考：如果while循环中不是1,2,3...,而是数据库中的内空呢？
+					比如是2个人或者多个人的聊天记录呢，这样就形成了既时通信
+					服务器端 ----  不间断  ----  推送信息   ---- >  到客户端
+					举例说明：
+						//反向ajax链接，应用于聊天室功能
+						set_time_limit(0);                    
+						$pad=str_repeat(" ",4070);    
+						echo $pad."<br/>";
+						ob_flush();
+						flush();
+						$conn=mysql_connect('localhost','root','');    //连接数据库
+						mysql_query('use text');                       //选库
+						while(true){
+							$sql='select * from msg where flag =0';    //查询未读信息,flag=0代表未读信息
+							$rs=mysql_query($sql,$conn);
+							$row=mysql_fetch_assoc($rs);
+							if(!empty($row)){
+								echo $pad,"<br/>";
+								echo $row['content'],'<br/>';
+								mysql_query('update msg set flag=1 where id='.$row['id']);    //将已读信息flag设为1
+							}
+							ob_flush();
+							flush();
+							sleep(1);      
+						}	
+				redis,node.js,php,comet(反向ajax)这才是真正的既时聊天服务器

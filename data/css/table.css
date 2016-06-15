@@ -1,0 +1,124 @@
+
+.widget-box {
+	background: none repeat scroll 0 0 #F9F9F9;
+	border-left: 1px solid #CDCDCD;
+	border-top: 1px solid #CDCDCD;
+	border-right: 1px solid #CDCDCD;
+	clear: both;
+	margin-top: 16px;
+	margin-bottom: 16px;
+	position: relative;
+	font-family: 	"Helvetica Neue",​Helvetica,​Arial,​sans-serif;
+	font-size: 12px;
+}
+
+.widget-title,
+.modal-header,
+div.dataTables_wrapper .ui-widget-header {
+	border-bottom: 1px solid #CDCDCD;
+	height: 36px;
+	background: url("../images/header-bg.png") repeat-x scroll 0 0 #e9ecf1;
+	border-radius: 2px 2px 0 0;
+	box-shadow: 0 1px 0 #fff inset, 0 1px 2px rgba(0, 0, 0, 0.02);
+	position: relative;
+}
+
+.widget-title span.icon {
+	padding: 9px 10px 8px 11px;
+	float: left;
+	border-right: 1px solid #dadada;
+}
+.widget-title h5 {
+	color: #666;
+	float: left;
+	font-size: 12px;
+	font-weight: bold;
+	padding: 12px;
+	line-height: 12px;
+	margin: 0;
+}
+
+tr{background: #FFF;}
+
+span.icon .checker {
+	margin-top: -5px;
+	margin-right: 0;
+}
+.table th {
+	height: auto;
+	font-size: 10px;
+	padding: 5px 10px 2px;
+	border-bottom: 0;
+	text-align: center;
+	color: #666666;
+}
+.table.with-check tr th:first-child,
+.table.with-check tr td:first-child {
+	width: 10px;
+}
+.table.with-check tr th:first-child i {
+	margin-top: -2px;
+	opacity: 0.6;
+}
+.table.with-check tr td:first-child .checker {
+	margin-right: 0;
+}
+.table tr.checked td {
+	background-color: #FFFFE3 !important;
+}
+
+div.checker {
+	position: relative;
+	margin-right: 5px;
+	width: 19px;
+	height: 19px;
+}
+div.checker span {
+	display: -moz-inline-box;
+	display: inline-block;
+	text-align: center;
+	background-position: 0px -260px;
+	height: 19px;
+	width: 19px;
+}
+div.selector,
+div.selector span,
+div.checker span,
+div.radio span,
+div.uploader,
+div.uploader span.action,
+div.button,
+div.button span {
+	background-image: url("../images/sprite.png");
+	background-repeat: no-repeat;
+	-webkit-font-smoothing: antialiased;
+}
+.table th {
+	height: auto;
+	font-size: 10px;
+	padding: 5px 10px 2px;
+	border-bottom: 0;
+	text-align: center;
+	color: #666666;
+}
+div.checker input {
+	opacity: 0;
+	filter: alpha(opacity: 0);
+	display: inline-block;
+	background: none;
+	width: 19px;
+	height: 19px;
+}
+div.checker span.checked {
+	background-position: -76px -260px;
+}
+.table-blue-color { 
+	color: #0089CD;
+}
+.table-padding-left {
+	padding-left: 30px!important
+}
+.table-bordered>thead>tr>th,
+.table-bordered>thead>tr>td {
+	border-bottom-width: 1px;
+}
